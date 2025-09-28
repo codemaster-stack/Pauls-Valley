@@ -47,7 +47,7 @@ $("#backToLoginFromForgot")?.addEventListener("click", () => {
 $("#closeReset")?.addEventListener("click", () => closeModal(resetModal));
 
 // =================== FORM HANDLERS ===================
-const API_URL = "https://api.pvbonline.online/api/users"; // update if deployed
+const API_URL = "https://valley.pvbonline.online/api/users"; // update if deployed
 
 // Utility function to handle button loading state
 const setButtonLoading = (button, isLoading, text = "Processing...") => {
@@ -61,39 +61,6 @@ const setButtonLoading = (button, isLoading, text = "Processing...") => {
   }
 };
 
-// ----- LOGIN -----
-// const loginForm = $("#loginForm");
-// if (loginForm) {
-//   loginForm.addEventListener("submit", async (e) => {
-//     e.preventDefault();
-//     const button = loginForm.querySelector("button[type='submit']");
-//     setButtonLoading(button, true);
-
-//     const data = {
-//       email: $("#email").value,
-//       password: $("#password").value,
-//     };
-//     try {
-//       const res = await fetch(`${API_URL}/login`, {
-//         method: "POST",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify(data),
-//       });
-//       const result = await res.json();
-//       if (res.ok) {
-//         alert("Login successful!");
-//         localStorage.setItem("token", result.token);
-//         window.location.href = "/userpage.html";
-//       } else {
-//         alert(result.message || "Login failed.");
-//       }
-//     } catch (err) {
-//       alert("Login failed. Please try again.");
-//     } finally {
-//       setButtonLoading(button, false);
-//     }
-//   });
-// }
 
 const loginForm = $("#loginForm");
 if (loginForm) {
@@ -317,7 +284,7 @@ if (supportForm) {
     };
 
     try {
-      const res = await fetch("https://api.pvbonline.online/api/contact", {
+      const res = await fetch("https://valley.pvbonline.online/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -438,7 +405,7 @@ document.getElementById("loanApplicationForm").addEventListener("submit", async 
   };
 
   try {
-    const res = await fetch("https://api.pvbonline.online/api/public/loans/apply", {
+    const res = await fetch("https://valley.pvbonline.online/api/public/loans/apply", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(loanData),
@@ -463,7 +430,7 @@ document.getElementById("loanApplicationForm").addEventListener("submit", async 
 
 // chart
 
-const socket = io("https://api.pvbonline.online", {
+const socket = io("https://valley.pvbonline.online", {
   transports: ["websocket"],
   withCredentials: true
 });
@@ -533,9 +500,6 @@ function appendMessage(sender, text, type) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-
-  
-  
   
   //  hamburger menu code
 const hamburger = document.querySelector('.open-mobilemenu');

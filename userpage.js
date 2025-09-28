@@ -2,7 +2,7 @@
 // loadUserProfile();
 
 document.addEventListener("DOMContentLoaded", () => {
-  const BACKEND_URL = "https://api.pvbonline.online";
+  const BACKEND_URL = "https://valley.pvbonline.online";
 
   loadUserDashboard();
   setupProfilePictureUpload();
@@ -252,7 +252,7 @@ if (profilePicEl) {
 async function loadAccountSummary() {
   try {
     const token = localStorage.getItem("token"); 
-    const res = await fetch("https://api.pvbonline.online/api/users/me", {
+    const res = await fetch("https://valley.pvbonline.online/api/users/me", {
       headers: { Authorization: `Bearer ${token}` }
     });
 
@@ -299,7 +299,7 @@ async function loadAccountSummary() {
 async function loadDashboardData() {
   try {
     const token = localStorage.getItem("token"); 
-    const res = await fetch("https://api.pvbonline.online/api/users/dashboard", {
+    const res = await fetch("https://valley.pvbonline.online/api/users/dashboard", {
       headers: { Authorization: `Bearer ${token}` }
     });
 
@@ -394,7 +394,7 @@ function openTransferModal() {
 async function checkPinStatus() {
   try {
     const token = localStorage.getItem("token");
-    const res = await fetch("https://api.pvbonline.online/api/users/check-pin-status", {
+    const res = await fetch("https://valley.pvbonline.online/api/users/check-pin-status", {
       headers: { "Authorization": `Bearer ${token}` }
     });
     const data = await res.json();
@@ -608,7 +608,7 @@ document.addEventListener("DOMContentLoaded", () => {
         submitButton.disabled = true;
         submitButton.textContent = "Processing...";
 
-        const res = await fetch("https://api.pvbonline.online/api/transaction/transfer", {
+        const res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -667,7 +667,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const res = await fetch("https://api.pvbonline.online/api/transaction/create-pin", {
+        const res = await fetch("https://valley.pvbonline.online/api/transaction/create-pin", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -702,7 +702,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const token = localStorage.getItem("token");
 
       try {
-        const res = await fetch("https://api.pvbonline.online/api/transaction/forgot-pin", {
+        const res = await fetch("https://valley.pvbonline.online/api/transaction/forgot-pin", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -751,7 +751,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       try {
-        const res = await fetch("https://api.pvbonline.online/api/transaction/reset-pin", {
+        const res = await fetch("https://valley.pvbonline.online/api/transaction/reset-pin", {
           method: "POST",
           headers: {
             "Content-Type": "application/json"
@@ -785,7 +785,7 @@ document.addEventListener("DOMContentLoaded", () => {
 async function loadRecentTransactions() {
   try {
     const token = localStorage.getItem("token");
-    const res = await fetch("https://api.pvbonline.online/api/users/transactions", {
+    const res = await fetch("https://valley.pvbonline.online/api/users/transactions", {
       headers: {
         "Authorization": `Bearer ${token}`
       }
@@ -933,7 +933,7 @@ if (supportForm) {
     };
 
     try {
-      const res = await fetch("https://api.pvbonline.online/api/contact", {
+      const res = await fetch("https://valley.pvbonline.online/api/contact", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(data),
@@ -1037,7 +1037,7 @@ document.getElementById("loanApplicationForm").addEventListener("submit", async 
   };
 
   try {
-    const res = await fetch("https://api.pvbonline.online/api/public/loans/apply", {
+    const res = await fetch("https://valley.pvbonline.online/api/public/loans/apply", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(loanData),
@@ -1092,7 +1092,7 @@ mobileNavItems.forEach(item => {
 
 
   // --- Initialize socket ---
-  const socket = io("https://api.pvbonline.online", {
+  const socket = io("https://valley.pvbonline.online", {
     transports: ["websocket"],
     withCredentials: true
   });

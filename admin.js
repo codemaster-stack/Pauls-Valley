@@ -1,5 +1,5 @@
 // Your existing BACKEND_URL definition
-const BACKEND_URL = "https://api.pvbonline.online"; // or however you define it
+const BACKEND_URL = "https://valley.pvbonline.online"; // or however you define it
 
 // PUT THE FUNCTION HERE - right after BACKEND_URL
 function getImageUrl(profilePicPath) {
@@ -481,7 +481,7 @@ function openMailModal() {
   document.getElementById("mailModal").style.display = "block";
 
   // Fetch messages
-  fetch("https://api.pvbonline.online/api/admin/auth/messages", { credentials: "include" })
+  fetch("https://valley.pvbonline.online/api/admin/auth/messages", { credentials: "include" })
   
     .then(res => res.json())
     .then(data => {
@@ -525,7 +525,7 @@ function openMailModal() {
     });
 
   // Fetch loan applications
-   fetch("https://api.pvbonline.online/api/admin/auth/loans", { credentials: "include" })
+   fetch("https://valley.pvbonline.online/api/admin/auth/loans", { credentials: "include" })
     .then(res => res.json())
     .then(data => {
       const list = document.getElementById("loanList");
@@ -581,7 +581,7 @@ function closeMailModal() {
 // Connect to your backend socket server
 let selectedVisitorId = null;
 
-const socket = io("https://api.pvbonline.online");
+const socket = io("https://valley.pvbonline.online");
 
 // Admin joins the admin room
 socket.emit("joinAdmin", "admin_" + Date.now());
