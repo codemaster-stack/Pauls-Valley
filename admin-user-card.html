@@ -412,22 +412,72 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            #adminCardCreation .card-creation-wrapper {
-                grid-template-columns: 1fr;
-                gap: 30px;
-            }
-            
-            #adminCardCreation .flip-card {
-                width: 100%;
-                max-width: 350px;
-            }
-            
-            #adminCardCreation .form-row {
-                grid-template-columns: 1fr;
-            }
-        }
+      
+/* Responsive */
+@media (max-width: 768px) {
+    /* --- Card creation layout --- */
+    #adminCardCreation .card-creation-wrapper {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    #adminCardCreation .flip-card {
+        width: 100%;
+        max-width: 350px;
+    }
+    
+    #adminCardCreation .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    /* --- Card number smaller --- */
+    #adminCardCreation .card-number {
+        font-size: 16px;
+        letter-spacing: 2px;
+        margin-bottom: 42px;
+    }
+
+    /* --- Card bottom (holder + expiry row) --- */
+    #adminCardCreation .card-bottom {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+        width: 100%;
+        margin-top: 0px;
+        margin-bottom: 42px;
+    }
+
+    #adminCardCreation .card-holder,
+    #adminCardCreation .card-expiry {
+        flex: 1;
+        min-width: 0;
+    }
+
+    #adminCardCreation .card-holder-name,
+    #adminCardCreation .card-expiry-date {
+        font-size: 12px;
+        line-height: 1.3;
+        color: #fff;
+        white-space: nowrap;
+    }
+
+    /* --- Visa / Master selection buttons --- */
+    #adminCardCreation .card-type-option {
+        padding: 5px;
+        font-size: 7px;
+    }
+
+    /* --- Preview / Create buttons --- */
+    #adminCardCreation .btn {
+        padding: 6px 10px;
+        font-size: 10px;
+    }
+}
+
+
+
+
     </style>
 
     <div class="admin-container">

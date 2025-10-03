@@ -417,6 +417,20 @@
             color: #666;
         }
 
+        #adminCardCreation .extra-actions {
+          display: flex;
+         justify-content: center;
+         gap: 15px;
+         margin-top: 20px;
+       }
+
+#adminCardCreation .extra-actions .btn {
+  padding: 10px 15px;
+  font-size: 13px;
+  border-radius: 8px;
+}
+
+
         /* Loading animation */
         .loading {
             display: inline-block;
@@ -511,7 +525,11 @@
 
                     <div class="buttons">
                         <button type="button" class="btn btn-preview" onclick="previewCard()">👁️ Preview Card</button>
-                        <button type="submit" class="btn btn-create">🚀 Create Card</button>
+                        <div class="extra-actions">
+                          <button onclick="window.location.href='view-cards.html'" class="btn">View My Cards</button>
+                          <button onclick="window.location.href='fund-card.html'" class="btn">Fund My Card</button>
+                        </div>
+                       <button type="submit" class="btn btn-create">🚀 Create Card</button>
                     </div>
                 </form>
             </div>
