@@ -246,51 +246,58 @@
           return;
         }
 
-        cards.forEach(c => {
-          const balance = c.cardBalance ? Number(c.cardBalance) : 0;
+      cards.forEach(c => {
+  const container = document.getElementById("cardContainer");
+  const balance = c.cardBalance ? Number(c.cardBalance) : 0;
 
-          const cardDiv = document.createElement("div");
-          cardDiv.className = "card-box";
+  const cardDiv = document.createElement("div");
+  cardDiv.className = "card-box";
 
-          cardDiv.innerHTML = `
-  <div class="flip-card">
-    <div class="flip-card-inner">
-      <!-- Front -->
-      <div class="flip-card-front">
-        <div class="bank-info">
-          <h3>PVB BANK</h3>
-          <p>Your trusted partner</p>
-        </div>
-        <div class="card-chip"></div>
-        <div class="card-number">${c.cardNumber.replace(/(\d{4})(?=\d)/g, "$1 ")}</div>
-        <div class="card-bottom">
-          <div class="card-holder">
-            <label>Card Holder</label>
-            <div class="card-holder-name">${c.cardHolderName}</div>
+  // NEW: check if card is active
+  if (!c.isActive) {
+    cardDiv.innerHTML = `<p style="color:red; font-weight:bold;">${c.statusMessage}</p>`;
+  } else {
+    cardDiv.innerHTML = `
+      <div class="flip-card">
+        <div class="flip-card-inner">
+          <!-- Front -->
+          <div class="flip-card-front">
+            <div class="bank-info">
+              <h3>PVB BANK</h3>
+              <p>Your trusted partner</p>
+            </div>
+            <div class="card-chip"></div>
+            <div class="card-number">${c.cardNumber.replace(/(\d{4})(?=\d)/g, "$1 ")}</div>
+            <div class="card-bottom">
+              <div class="card-holder">
+                <label>Card Holder</label>
+                <div class="card-holder-name">${c.cardHolderName}</div>
+              </div>
+              <div class="card-expiry">
+                <label>Expires</label>
+                <div class="card-expiry-date">${c.expiryDate}</div>
+              </div>
+            </div>
+            <div class="card-type">${c.cardType.toUpperCase()}</div>
           </div>
-          <div class="card-expiry">
-            <label>Expires</label>
-            <div class="card-expiry-date">${c.expiryDate}</div>
+
+          <!-- Back -->
+          <div class="flip-card-back">
+            <div class="magnetic-strip"></div>
+            <div class="cvv-box">
+              <label>CVV</label>
+              <div class="cvv-number">${c.cvv}</div>
+            </div>
           </div>
         </div>
-        <div class="card-type">${c.cardType.toUpperCase()}</div>
       </div>
+      <div class="card-balance">Balance: $${balance.toLocaleString()}</div>
+    `;
+  }
 
-      <!-- Back -->
-      <div class="flip-card-back">
-        <div class="magnetic-strip"></div>
-        <div class="cvv-box">
-          <label>CVV</label>
-          <div class="cvv-number">${c.cvv}</div>
-        </div>
-      </div>
-    </div>
-  </div>
-  <div class="card-balance">Balance: $${balance.toLocaleString()}</div>
-`;
+  container.appendChild(cardDiv);
+});
 
-          container.appendChild(cardDiv);
-        });
       } catch (err) {
         alert("Error loading cards: " + err.message);
       }
