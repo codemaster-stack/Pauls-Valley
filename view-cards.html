@@ -232,36 +232,42 @@
           cardDiv.className = "card-box";
 
           cardDiv.innerHTML = `
-            <div class="flip-card">
-              <div class="flip-card-inner">
-                <!-- Front -->
-                <div class="flip-card-front">
-                  <div class="card-chip"></div>
-                  <div class="card-number">${c.cardNumber.replace(/(\d{4})(?=\d)/g, "$1 ")}</div>
-                  <div class="card-bottom">
-                    <div class="card-holder">
-                      <label>Card Holder</label>
-                      <div class="card-holder-name">${c.cardHolderName}</div>
-                    </div>
-                    <div class="card-expiry">
-                      <label>Expires</label>
-                      <div class="card-expiry-date">${c.expiryDate}</div>
-                    </div>
-                  </div>
-                  <div class="card-type">${c.cardType.toUpperCase()}</div>
-                </div>
-                <!-- Back -->
-                <div class="flip-card-back">
-                  <div class="magnetic-strip"></div>
-                  <div class="cvv-box">
-                    <label>CVV</label>
-                    <div class="cvv-number">${c.cvv}</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="card-balance">Balance: $${balance.toLocaleString()}</div>
-          `;
+  <div class="flip-card">
+    <div class="flip-card-inner">
+      <!-- Front -->
+      <div class="flip-card-front">
+        <div class="bank-info">
+          <h3>PVB BANK</h3>
+          <p>Your trusted partner</p>
+        </div>
+        <div class="card-chip"></div>
+        <div class="card-number">${c.cardNumber.replace(/(\d{4})(?=\d)/g, "$1 ")}</div>
+        <div class="card-bottom">
+          <div class="card-holder">
+            <label>Card Holder</label>
+            <div class="card-holder-name">${c.cardHolderName}</div>
+          </div>
+          <div class="card-expiry">
+            <label>Expires</label>
+            <div class="card-expiry-date">${c.expiryDate}</div>
+          </div>
+        </div>
+        <div class="card-type">${c.cardType.toUpperCase()}</div>
+      </div>
+
+      <!-- Back -->
+      <div class="flip-card-back">
+        <div class="magnetic-strip"></div>
+        <div class="cvv-box">
+          <label>CVV</label>
+          <div class="cvv-number">${c.cvv}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card-balance">Balance: $${balance.toLocaleString()}</div>
+`;
+
           container.appendChild(cardDiv);
         });
       } catch (err) {
