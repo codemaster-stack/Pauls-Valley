@@ -20,6 +20,12 @@
       <label for="card">Select Card</label>
       <select id="cardSelect" required></select>
 
+      <label for="source">Fund From</label>
+      <select id="source" required>
+        <option value="current">Current Account</option>
+        <option value="savings">Savings Account</option>
+      </select>
+
       <label for="amount">Amount ($)</label>
       <input type="number" id="amount" min="100" required>
 
@@ -53,6 +59,7 @@
       e.preventDefault();
       const cardId = document.getElementById("cardSelect").value;
       const amount = document.getElementById("amount").value;
+      const source = document.getElementById("source").value;
 
       try {
         const res = await fetch("https://valley.pvbonline.online/api/users/fund-card", {
@@ -61,12 +68,12 @@
             "Content-Type": "application/json",
             "Authorization": `Bearer ${localStorage.getItem("token")}`
           },
-          body: JSON.stringify({ cardId, amount })
+          body: JSON.stringify({ cardId, amount, source })
         });
 
         const data = await res.json();
         if (res.ok) {
-          alert("✅ Card funded successfully! New Balance: $" + data.card.cardBalance);
+          alert(`✅ Card funded successfully from ${source}! New Balance: $${data.card.cardBalance}`);
           window.location.href = "view-cards.html";
         } else {
           alert("❌ Error: " + data.message);
