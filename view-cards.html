@@ -49,7 +49,8 @@
             <div class="card-number">${c.cardNumber.replace(/(\d{4})(?=\d)/g, "$1 ")}</div>
             <p>Holder: ${c.cardHolderName}</p>
             <p>Expiry: ${c.expiryDate}</p>
-            <p class="balance">Balance: ₦${c.cardBalance.toLocaleString()}</p>
+           <p class="balance">Balance: $${(c.cardBalance ?? 0).toLocaleString()}</p>
+
           `;
           container.appendChild(cardDiv);
         });
