@@ -370,9 +370,12 @@
 
         .buttons {
             display: flex;
-            gap: 15px;
-            margin-top: 30px;
+            gap: 11px;
+            margin-top: 20px;
+            flex-direction: column;
         }
+
+
 
         .btn {
             flex: 1;
@@ -463,6 +466,19 @@
                 grid-template-columns: 1fr;
             }
         }
+        
+        @media (max-width: 600px) {
+  .buttons {
+    transform: scale(0.9);   /* shrink the whole container */
+    max-width: 90%;          /* reduce container width */
+    margin: 0 auto;          /* center it */
+  }
+
+  .buttons .btn {
+    font-size: 14px;   /* smaller button text */
+    padding: 8px 12px; /* reduce button size */
+  }
+}
     </style>
 </head>
 <body>
