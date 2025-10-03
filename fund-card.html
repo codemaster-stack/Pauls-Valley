@@ -20,7 +20,7 @@
       <label for="card">Select Card</label>
       <select id="cardSelect" required></select>
 
-      <label for="amount">Amount (₦)</label>
+      <label for="amount">Amount ($)</label>
       <input type="number" id="amount" min="100" required>
 
       <button type="submit">🚀 Fund Card</button>
@@ -44,7 +44,7 @@
       cards.forEach(c => {
         const opt = document.createElement("option");
         opt.value = c._id;
-        opt.textContent = `${c.cardType.toUpperCase()} - ${c.cardNumber.slice(-4)} (₦${c.cardBalance})`;
+        opt.textContent = `${c.cardType.toUpperCase()} - ${c.cardNumber.slice(-4)} ($${c.cardBalance})`;
         select.appendChild(opt);
       });
     }
