@@ -944,146 +944,161 @@ document.addEventListener('DOMContentLoaded', () => {
             `).join('');
         }
 
+      
         // Display approved cards
-        function displayApprovedCards(cards) {
-            const container = document.getElementById('approvedCardsContainer');
-            
-            if (cards.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>📭 No Approved Cards</h3>
-                        <p>No cards have been approved yet.</p>
-                    </div>
-                `;
-                return;
-            }
+function displayApprovedCards(cards) {
+    const container = document.getElementById('approvedCardsContainer');
+    
+    if (cards.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>📭 No Approved Cards</h3>
+                <p>No cards have been approved yet.</p>
+            </div>
+        `;
+        return;
+    }
 
-            container.innerHTML = cards.map(card => `
-                <div class="card-application approved">
-                    <div class="card-header">
-                        <div class="user-info">
-                            <h3>${card.userId.fullname}</h3>
-                            <p>${card.userId.email}</p>
-                        </div>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <span class="status-badge approved">${card.status}</span>
-                            <span class="status-badge ${card.isActive ? 'approved' : 'rejected'}">
-                                ${card.isActive ? 'Active' : 'Inactive'}
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="card-details">
-                        <div class="detail-item">
-                            <label>Card Holder Name</label>
-                            <span>${card.cardHolderName}</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Card Type</label>
-                            <span>${card.cardType.toUpperCase()}</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Card Number</label>
-                            <span>${card.cardNumber.replace(/(.{4})/g, '$1 ').trim()}</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Expiry Date</label>
-                            <span>${card.expiryDate}</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Created By</label>
-                            <span>${card.createdBy.toUpperCase()}</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Approved On</label>
-                            <span>${card.approvedAt ? new Date(card.approvedAt).toLocaleDateString() : 'N/A'}</span>
-                        </div>
-                    </div>
-                    
-                    <div class="card-actions">
-                        ${card.isActive 
-                            ? `<button class="btn btn-deactivate" onclick="deactivateCard('${card._id}')">🚫 Deactivate</button>`
-                            : `<button class="btn btn-reactivate" onclick="reactivateCard('${card._id}')">✅ Reactivate</button>`
-                        }
-                    </div>
+    container.innerHTML = cards.map(card => {
+        const fullname = card.userId ? card.userId.fullname : 'N/A';
+        const email = card.userId ? card.userId.email : 'N/A';
+        const balance = card.cardBalance ?? 0;
+
+        return `
+        <div class="card-application approved">
+            <div class="card-header">
+                <div class="user-info">
+                    <h3>${fullname}</h3>
+                    <p>${email}</p>
                 </div>
-            `).join('');
-        }
-
-        // Display all cards
-        function displayAllCards(cards) {
-            const container = document.getElementById('allCardsContainer');
-            
-            if (cards.length === 0) {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <h3>📭 No Cards Found</h3>
-                        <p>No cards match the selected filters.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = cards.map(card => `
-                <div class="card-application ${card.status}">
-                    <div class="card-header">
-                        <div class="user-info">
-                            <h3>${card.userId.fullname}</h3>
-                            <p>${card.userId.email}</p>
-                        </div>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <span class="status-badge ${card.status}">${card.status}</span>
-                            ${card.status === 'approved' ? `
-                                <span class="status-badge ${card.isActive ? 'approved' : 'rejected'}">
-                                    ${card.isActive ? 'Active' : 'Inactive'}
-                                </span>
-                            ` : ''}
-                        </div>
-                    </div>
-                    
-                    <div class="card-details">
-                        <div class="detail-item">
-                            <label>Card Holder Name</label>
-                            <span>${card.cardHolderName}</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Card Type</label>
-                            <span>${card.cardType.toUpperCase()}</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Card Number</label>
-                            <span>${card.cardNumber.replace(/(.{4})/g, '$1 ').trim()}</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Created By</label>
-                            <span>${card.createdBy.toUpperCase()}</span>
-                        </div>
-                        <div class="detail-item">
-                            <label>Applied On</label>
-                            <span>${new Date(card.createdAt).toLocaleDateString()}</span>
-                        </div>
-                        ${card.rejectionReason ? `
-                            <div class="detail-item" style="grid-column: 1 / -1;">
-                                <label>Rejection Reason</label>
-                                <span style="color: #dc3545;">${card.rejectionReason}</span>
-                            </div>
-                        ` : ''}
-                    </div>
-                    
-                    <div class="card-actions">
-                        ${card.status === 'pending' ? `
-                            <button class="btn btn-approve" onclick="approveCard('${card._id}')">✅ Approve</button>
-                            <button class="btn btn-reject" onclick="openRejectionModal('${card._id}')">❌ Reject</button>
-                        ` : card.status === 'approved' ? `
-                            ${card.isActive 
-                                ? `<button class="btn btn-deactivate" onclick="deactivateCard('${card._id}')">🚫 Deactivate</button>`
-                                : `<button class="btn btn-reactivate" onclick="reactivateCard('${card._id}')">✅ Reactivate</button>`
-                            }
-                        ` : ''}
-                    </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span class="status-badge approved">${card.status}</span>
+                    <span class="status-badge ${card.isActive ? 'approved' : 'rejected'}">
+                        ${card.isActive ? 'Active' : 'Inactive'}
+                    </span>
                 </div>
-            `).join('');
-        }
+            </div>
+            
+            <div class="card-details">
+                <div class="detail-item">
+                    <label>Card Holder Name</label>
+                    <span>${card.cardHolderName}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Card Type</label>
+                    <span>${card.cardType.toUpperCase()}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Card Number</label>
+                    <span>${card.cardNumber.replace(/(.{4})/g, '$1 ').trim()}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Balance</label>
+                    <span>$${balance.toLocaleString()}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Created By</label>
+                    <span>${card.createdBy.toUpperCase()}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Approved On</label>
+                    <span>${card.approvedAt ? new Date(card.approvedAt).toLocaleDateString() : 'N/A'}</span>
+                </div>
+            </div>
+            
+            <div class="card-actions">
+                ${card.isActive 
+                    ? `<button class="btn btn-deactivate" onclick="deactivateCard('${card._id}')">🚫 Deactivate</button>`
+                    : `<button class="btn btn-reactivate" onclick="reactivateCard('${card._id}')">✅ Reactivate</button>`
+                }
+            </div>
+        </div>`;
+    }).join('');
+}
+
+// Display all cards
+function displayAllCards(cards) {
+    const container = document.getElementById('allCardsContainer');
+    
+    if (cards.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state">
+                <h3>📭 No Cards Found</h3>
+                <p>No cards match the selected filters.</p>
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = cards.map(card => {
+        const fullname = card.userId ? card.userId.fullname : 'N/A';
+        const email = card.userId ? card.userId.email : 'N/A';
+        const balance = card.cardBalance ?? 0;
+
+        return `
+        <div class="card-application ${card.status}">
+            <div class="card-header">
+                <div class="user-info">
+                    <h3>${fullname}</h3>
+                    <p>${email}</p>
+                </div>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <span class="status-badge ${card.status}">${card.status}</span>
+                    ${card.status === 'approved' ? `
+                        <span class="status-badge ${card.isActive ? 'approved' : 'rejected'}">
+                            ${card.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    ` : ''}
+                </div>
+            </div>
+            
+            <div class="card-details">
+                <div class="detail-item">
+                    <label>Card Holder Name</label>
+                    <span>${card.cardHolderName}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Card Type</label>
+                    <span>${card.cardType.toUpperCase()}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Card Number</label>
+                    <span>${card.cardNumber.replace(/(.{4})/g, '$1 ').trim()}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Balance</label>
+                    <span>$${balance.toLocaleString()}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Created By</label>
+                    <span>${card.createdBy.toUpperCase()}</span>
+                </div>
+                <div class="detail-item">
+                    <label>Applied On</label>
+                    <span>${new Date(card.createdAt).toLocaleDateString()}</span>
+                </div>
+                ${card.rejectionReason ? `
+                    <div class="detail-item" style="grid-column: 1 / -1;">
+                        <label>Rejection Reason</label>
+                        <span style="color: #dc3545;">${card.rejectionReason}</span>
+                    </div>
+                ` : ''}
+            </div>
+            
+            <div class="card-actions">
+                ${card.status === 'pending' ? `
+                    <button class="btn btn-approve" onclick="approveCard('${card._id}')">✅ Approve</button>
+                    <button class="btn btn-reject" onclick="openRejectionModal('${card._id}')">❌ Reject</button>
+                ` : card.status === 'approved' ? `
+                    ${card.isActive 
+                        ? `<button class="btn btn-deactivate" onclick="deactivateCard('${card._id}')">🚫 Deactivate</button>`
+                        : `<button class="btn btn-reactivate" onclick="reactivateCard('${card._id}')">✅ Reactivate</button>`
+                    }
+                ` : ''}
+            </div>
+        </div>`;
+    }).join('');
+}
 
         // Approve card
       async function approveCard(cardId) {
