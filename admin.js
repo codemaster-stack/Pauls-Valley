@@ -580,12 +580,51 @@ function closeMailModal() {
 
 // Connect to your backend socket server
 let selectedVisitorId = null;
-const chatHistory = {}; // Store chat history for each visitor
+let chatHistory = {}; // Store chat history for each visitor
 
 const socket = io("https://valley.pvbonline.online");
 
+// Load chat history from memory on page load
+window.addEventListener('DOMContentLoaded', () => {
+  loadAllChatHistory();
+});
+
 // Admin joins the admin room
 socket.emit("joinAdmin", "admin_" + Date.now());
+
+// Request chat history from server for all visitors
+socket.emit("requestChatHistory");
+
+// Receive chat history from server
+socket.on("chatHistory", (data) => {
+  console.log("📚 Received chat history from server:", data);
+  
+  // Store all conversation history
+  if (data && typeof data === 'object') {
+    Object.keys(data).forEach(visitorId => {
+      if (!chatHistory[visitorId]) {
+        chatHistory[visitorId] = [];
+      }
+      
+      // Merge server history with local history
+      data[visitorId].forEach(msg => {
+        chatHistory[visitorId].push({
+          sender: msg.sender || msg.from || "User",
+          text: msg.text || msg.message,
+          html: `<strong>${msg.sender || msg.from || "User"}:</strong> ${msg.text || msg.message}`,
+          timestamp: msg.timestamp || Date.now()
+        });
+      });
+    });
+    
+    saveAllChatHistory();
+    
+    // If a user is selected, reload their chat
+    if (selectedVisitorId && chatHistory[selectedVisitorId]) {
+      loadChatHistory(selectedVisitorId);
+    }
+  }
+});
 
 // Fetch active visitors
 function loadChatUsers() {
@@ -630,6 +669,13 @@ function selectUser(visitorId, email) {
   headerDiv.innerHTML = `<strong>Chatting with:</strong> ${email}`;
   chatWindow.appendChild(headerDiv);
   
+  // Initialize chat history for new visitor
+  if (!chatHistory[visitorId]) {
+    chatHistory[visitorId] = [];
+    // Request history from server for this specific visitor
+    socket.emit("requestVisitorHistory", { visitorId: visitorId });
+  }
+  
   // Load previous chat history for this visitor
   loadChatHistory(visitorId);
   
@@ -641,20 +687,30 @@ function saveChatHistory(visitorId) {
   const chatWindow = document.getElementById("chatWindow");
   const messages = chatWindow.querySelectorAll(".chat-message");
   
-  chatHistory[visitorId] = Array.from(messages).map(msg => ({
-    sender: msg.querySelector("strong").textContent.replace(":", ""),
-    text: msg.textContent.replace(/^[^:]+:\s*/, ""),
-    html: msg.innerHTML
-  }));
+  chatHistory[visitorId] = Array.from(messages).map(msg => {
+    const strongTag = msg.querySelector("strong");
+    const sender = strongTag ? strongTag.textContent.replace(":", "").trim() : "User";
+    const text = msg.textContent.replace(/^[^:]+:\s*/, "").trim();
+    
+    return {
+      sender: sender,
+      text: text,
+      html: msg.innerHTML,
+      timestamp: Date.now()
+    };
+  });
+  
+  // Save to memory
+  saveAllChatHistory();
   
   console.log(`💾 Saved ${messages.length} messages for ${visitorId}`);
 }
 
 // Load chat history for a visitor
 function loadChatHistory(visitorId) {
+  const chatWindow = document.getElementById("chatWindow");
+  
   if (chatHistory[visitorId] && chatHistory[visitorId].length > 0) {
-    const chatWindow = document.getElementById("chatWindow");
-    
     chatHistory[visitorId].forEach(msg => {
       const msgDiv = document.createElement("div");
       msgDiv.className = "chat-message";
@@ -668,6 +724,21 @@ function loadChatHistory(visitorId) {
     console.log(`📂 Loaded ${chatHistory[visitorId].length} messages for ${visitorId}`);
   } else {
     console.log(`📭 No chat history for ${visitorId}`);
+  }
+}
+
+// Save all chat history to memory (in-memory storage only)
+function saveAllChatHistory() {
+  // Store in memory - data persists during session
+  window.adminChatHistory = chatHistory;
+  console.log("💾 Saved all chat history to memory");
+}
+
+// Load all chat history from memory
+function loadAllChatHistory() {
+  if (window.adminChatHistory) {
+    chatHistory = window.adminChatHistory;
+    console.log("📂 Loaded chat history from memory");
   }
 }
 
@@ -685,6 +756,19 @@ function sendMessage() {
   socket.emit("adminMessage", { visitorId: selectedVisitorId, text: message });
 
   appendMessage("Admin", message);
+  
+  // Save to history immediately
+  if (!chatHistory[selectedVisitorId]) {
+    chatHistory[selectedVisitorId] = [];
+  }
+  chatHistory[selectedVisitorId].push({
+    sender: "Admin",
+    text: message,
+    html: `<strong>Admin:</strong> ${message}`,
+    timestamp: Date.now()
+  });
+  saveAllChatHistory();
+  
   input.value = "";
 }
 
@@ -724,20 +808,26 @@ socket.on("chatMessage", (data) => {
     }
   }
   
-  // Handle the message
+  // Initialize chat history if needed
+  if (!chatHistory[data.visitorId]) {
+    chatHistory[data.visitorId] = [];
+  }
+  
+  // Store message in history
+  const messageData = {
+    sender: "User",
+    text: data.text,
+    html: `<strong>User:</strong> ${data.text}`,
+    timestamp: Date.now()
+  };
+  
+  chatHistory[data.visitorId].push(messageData);
+  saveAllChatHistory();
+  
+  // Handle the message display
   if (data.visitorId === selectedVisitorId) {
     appendMessage("User", data.text);
   } else {
-    // Store message in history even if user is not selected
-    if (!chatHistory[data.visitorId]) {
-      chatHistory[data.visitorId] = [];
-    }
-    chatHistory[data.visitorId].push({
-      sender: "User",
-      text: data.text,
-      html: `<strong>User:</strong> ${data.text}`
-    });
-    
     console.log("📩 New message from another visitor:", data);
     // Highlight visitor with new message
     const visitorLi = document.getElementById(`visitor-${data.visitorId}`);
