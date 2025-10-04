@@ -1120,8 +1120,14 @@ function sendMessage() {
 socket.on("chatMessage", (data) => {
   console.log("📨 Received message:", data);
   
+  // Extract visitorId - handle different data formats
+  const visitorId = data.visitorId || data.sender;
+  const messageText = data.text || data.message;
+  
+  console.log("Extracted visitorId:", visitorId, "Message:", messageText);
+  
   // Auto-add visitor to list if not already there
-  if (!document.getElementById(`visitor-${data.visitorId}`)) {
+  if (!document.getElementById(`visitor-${visitorId}`)) {
     const usersUl = document.getElementById("usersUl");
     if (usersUl) {
       // Clear the "Waiting for visitors..." message
@@ -1131,13 +1137,13 @@ socket.on("chatMessage", (data) => {
       
       // Create new visitor list item
       const li = document.createElement("li");
-      li.textContent = data.visitorId;
+      li.textContent = visitorId;
       li.style.cursor = "pointer";
       li.style.padding = "8px";
       li.style.borderBottom = "1px solid #ddd";
       li.style.listStyle = "none";
       li.onclick = () => {
-        selectUser(data.visitorId, data.visitorId);
+        selectUser(visitorId, visitorId);
         // Highlight selected user
         document.querySelectorAll("#usersUl li").forEach(item => {
           item.style.backgroundColor = "";
@@ -1145,36 +1151,37 @@ socket.on("chatMessage", (data) => {
         });
         li.style.backgroundColor = "#e3f2fd";
       };
-      li.id = `visitor-${data.visitorId}`;
+      li.id = `visitor-${visitorId}`;
       usersUl.appendChild(li);
       
-      console.log("✅ Added visitor to list:", data.visitorId);
+      console.log("✅ Added visitor to list:", visitorId);
     }
   }
   
   // Initialize chat history if needed
-  if (!chatHistory[data.visitorId]) {
-    chatHistory[data.visitorId] = [];
+  if (!chatHistory[visitorId]) {
+    chatHistory[visitorId] = [];
   }
   
   // Store message in history
   const messageData = {
     sender: "User",
-    text: data.text,
-    html: `<strong>User:</strong> ${data.text}`,
+    text: messageText,
+    html: `<strong>User:</strong> ${messageText}`,
     timestamp: Date.now()
   };
   
-  chatHistory[data.visitorId].push(messageData);
+  chatHistory[visitorId].push(messageData);
   saveAllChatHistory();
   
   // Handle the message display
-  if (data.visitorId === selectedVisitorId) {
-    appendMessage("User", data.text);
+  if (visitorId === selectedVisitorId) {
+    console.log("✅ Displaying message for selected user");
+    appendMessage("User", messageText);
   } else {
-    console.log("📩 New message from another visitor:", data);
+    console.log("📩 New message from another visitor:", visitorId);
     // Highlight visitor with new message
-    const visitorLi = document.getElementById(`visitor-${data.visitorId}`);
+    const visitorLi = document.getElementById(`visitor-${visitorId}`);
     if (visitorLi) {
       visitorLi.style.backgroundColor = "#ffeb3b";
       visitorLi.style.fontWeight = "bold";
