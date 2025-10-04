@@ -579,6 +579,119 @@ function closeMailModal() {
 
 
 // Connect to your backend socket server
+// let selectedVisitorId = null;
+
+// const socket = io("https://valley.pvbonline.online");
+
+// // Admin joins the admin room
+// socket.emit("joinAdmin", "admin_" + Date.now());
+
+// // Fetch active visitors
+// function loadChatUsers() {
+//   console.log("🔍 loadChatUsers called!");
+//   console.trace("Called from:"); // This will show you exactly what called this function
+  
+//   const usersUl = document.getElementById("usersUl");
+//   if (!usersUl) {
+//     console.error("❌ usersUl element not found!");
+//     return;
+//   }
+  
+//   // Check if visitors are already in the list
+//   const existingVisitors = usersUl.querySelectorAll('li[id^="visitor-"]');
+//   console.log("📋 Existing visitors found:", existingVisitors.length);
+  
+//   if (existingVisitors.length === 0) {
+//     console.log("📋 No visitors, showing waiting message");
+//     usersUl.innerHTML = "<li><em>Waiting for visitors to send messages...</em></li>";
+//   } else {
+//     console.log("📋 Visitors already in list, preserving them");
+//     // Don't clear the list if visitors are already there
+//   }
+// }
+// function selectUser(visitorId, email) {
+//   selectedVisitorId = visitorId;
+//   document.getElementById("chatWindow").innerHTML = `<p><em>Chatting with ${email}</em></p>`;
+//   console.log("Selected user:", visitorId, email);
+// }
+
+// // Send message
+// function sendMessage() {
+//   if (!selectedVisitorId) {
+//     alert("Please select a user first.");
+//     return;
+//   }
+
+//   const input = document.getElementById("chatMessage");
+//   const message = input.value.trim();
+//   if (!message) return;
+
+//   socket.emit("adminMessage", { visitorId: selectedVisitorId, text: message });
+
+//   appendMessage("Admin", message);
+//   input.value = "";
+// }
+
+// // Receive visitor messages
+// socket.on("chatMessage", (data) => {
+//   console.log("📨 Received message:", data);
+  
+//   // Auto-add visitor to list if not already there
+//   if (!document.getElementById(`visitor-${data.visitorId}`)) {
+//     const usersUl = document.getElementById("usersUl");
+//     if (usersUl) {
+//       // Clear the "Waiting for visitors..." message
+//       if (usersUl.innerHTML.includes("Waiting for visitors")) {
+//         usersUl.innerHTML = "";
+//       }
+      
+//       // Create new visitor list item
+//       const li = document.createElement("li");
+//       li.textContent = data.visitorId;
+//       li.style.cursor = "pointer";
+//       li.style.padding = "8px";
+//       li.style.borderBottom = "1px solid #ddd";
+//       li.style.listStyle = "none";
+//       li.onclick = () => {
+//         selectUser(data.visitorId, data.visitorId);
+//         // Highlight selected user
+//         document.querySelectorAll("#usersUl li").forEach(item => {
+//           item.style.backgroundColor = "";
+//           item.style.fontWeight = "normal";
+//         });
+//         li.style.backgroundColor = "#e3f2fd";
+//       };
+//       li.id = `visitor-${data.visitorId}`;
+//       usersUl.appendChild(li);
+      
+//       console.log("✅ Added visitor to list:", data.visitorId);
+//     }
+//   }
+  
+//   // Handle the message
+//   if (data.visitorId === selectedVisitorId) {
+//     appendMessage("User", data.text);
+//   } else {
+//     console.log("📩 New message from another visitor:", data);
+//     // Highlight visitor with new message
+//     const visitorLi = document.getElementById(`visitor-${data.visitorId}`);
+//     if (visitorLi) {
+//       visitorLi.style.backgroundColor = "#ffeb3b";
+//       visitorLi.style.fontWeight = "bold";
+//     }
+//   }
+// });
+
+// function appendMessage(sender, message) {
+//   const chatWindow = document.getElementById("chatWindow");
+//   const msgDiv = document.createElement("div");
+//   msgDiv.className = "chat-message";
+//   msgDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
+//   chatWindow.appendChild(msgDiv);
+//   chatWindow.scrollTop = chatWindow.scrollHeight;
+// }
+
+
 let selectedVisitorId = null;
 
 const socket = io("https://valley.pvbonline.online");
@@ -589,7 +702,7 @@ socket.emit("joinAdmin", "admin_" + Date.now());
 // Fetch active visitors
 function loadChatUsers() {
   console.log("🔍 loadChatUsers called!");
-  console.trace("Called from:"); // This will show you exactly what called this function
+  console.trace("Called from:");
   
   const usersUl = document.getElementById("usersUl");
   if (!usersUl) {
@@ -597,7 +710,6 @@ function loadChatUsers() {
     return;
   }
   
-  // Check if visitors are already in the list
   const existingVisitors = usersUl.querySelectorAll('li[id^="visitor-"]');
   console.log("📋 Existing visitors found:", existingVisitors.length);
   
@@ -606,12 +718,25 @@ function loadChatUsers() {
     usersUl.innerHTML = "<li><em>Waiting for visitors to send messages...</em></li>";
   } else {
     console.log("📋 Visitors already in list, preserving them");
-    // Don't clear the list if visitors are already there
   }
 }
+
 function selectUser(visitorId, email) {
   selectedVisitorId = visitorId;
-  document.getElementById("chatWindow").innerHTML = `<p><em>Chatting with ${email}</em></p>`;
+  
+  // ✅ FIX: Clear chat window properly and add header
+  const chatWindow = document.getElementById("chatWindow");
+  chatWindow.innerHTML = ""; // Clear previous messages
+  
+  // Add a header that won't be cleared
+  const headerDiv = document.createElement("div");
+  headerDiv.style.padding = "10px";
+  headerDiv.style.backgroundColor = "#f5f5f5";
+  headerDiv.style.borderBottom = "2px solid #ddd";
+  headerDiv.style.marginBottom = "10px";
+  headerDiv.innerHTML = `<strong>Chatting with:</strong> ${email}`;
+  chatWindow.appendChild(headerDiv);
+  
   console.log("Selected user:", visitorId, email);
 }
 
@@ -686,10 +811,14 @@ function appendMessage(sender, message) {
   const chatWindow = document.getElementById("chatWindow");
   const msgDiv = document.createElement("div");
   msgDiv.className = "chat-message";
+  msgDiv.style.padding = "8px";
+  msgDiv.style.marginBottom = "5px";
   msgDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
   chatWindow.appendChild(msgDiv);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
+
+
 
 // Card
 
