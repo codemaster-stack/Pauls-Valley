@@ -1092,78 +1092,234 @@ mobileNavItems.forEach(item => {
 
 
   // --- Initialize socket ---
+  // const socket = io("https://valley.pvbonline.online", {
+  //   transports: ["websocket"],
+  //   withCredentials: true
+  // });
+
+  // // Unique visitor ID for this session
+  // const visitorId = "visitor_" + Date.now();
+
+  // socket.on("connect", () => {
+  //   socket.emit("joinVisitor", visitorId);
+  //   document.getElementById("chatStatusText").innerText = "Connected";
+  //   document.querySelector(".chat-status-dot").style.background = "green";
+  // });
+
+  // socket.on("disconnect", () => {
+  //   document.getElementById("chatStatusText").innerText = "Disconnected";
+  //   document.querySelector(".chat-status-dot").style.background = "red";
+  // });
+
+  // // Receive message from admin
+  // socket.on("chatMessage", (data) => {
+  //   appendMessage(
+  //     data.sender === "admin" ? "Support" : "You",
+  //     data.text,
+  //     data.sender
+  //   );
+  // });
+
+  // // --- Open chat modal ---
+  // function openChatModal() {
+  //   document.getElementById("chatModal").style.display = "block";
+  // }
+
+  // // --- Close chat modal ---
+  // function closeChatModal() {
+  //   document.getElementById("chatModal").style.display = "none";
+  // }
+
+  // // --- Send message from visitor to admin ---
+  // function sendChatMessage() {
+  //   const input = document.getElementById("chatInput");
+  //   const msg = input.value.trim();
+  //   if (!msg) return;
+
+  //   socket.emit("visitorMessage", { visitorId, text: msg });
+  //   appendMessage("You", msg, "visitor");
+  //   input.value = "";
+  // }
+
+  // // --- Press Enter to send ---
+  // function handleChatKeyPress(e) {
+  //   if (e.key === "Enter") {
+  //     sendChatMessage();
+  //   }
+  // }
+
+  // // --- Append message to chat window ---
+  // function appendMessage(sender, text, type) {
+  //   const chatBox = document.getElementById("chatMessages");
+  //   const msgDiv = document.createElement("div");
+  //   msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
+  //   msgDiv.innerHTML = `
+  //     <div class="message-avatar">
+  //       <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
+  //     </div>
+  //     <div class="message-content">
+  //       <div class="message-header">${sender}</div>
+  //       <div class="message-text">${text}</div>
+  //       <div class="message-time">${new Date().toLocaleTimeString()}</div>
+  //     </div>
+  //   `;
+  //   chatBox.appendChild(msgDiv);
+  //   chatBox.scrollTop = chatBox.scrollHeight;
+  // }
+
+
+
   const socket = io("https://valley.pvbonline.online", {
-    transports: ["websocket"],
-    withCredentials: true
+  transports: ["websocket"],
+  withCredentials: true
+});
+
+// Unique visitor ID for this session
+const visitorId = "visitor_" + Date.now();
+
+socket.on("connect", () => {
+  socket.emit("joinVisitor", visitorId);
+  document.getElementById("chatStatusText").innerText = "Connected";
+  document.querySelector(".chat-status-dot").style.background = "green";
+});
+
+socket.on("disconnect", () => {
+  document.getElementById("chatStatusText").innerText = "Disconnected";
+  document.querySelector(".chat-status-dot").style.background = "red";
+});
+
+// Receive message from admin
+socket.on("chatMessage", (data) => {
+  appendMessage(
+    data.sender === "admin" ? "Support" : "You",
+    data.text,
+    data.sender
+  );
+});
+
+// ✨ NEW: Listen for admin typing notification
+socket.on("adminTyping", (data) => {
+  showAdminTypingIndicator(data.typing);
+});
+
+// ✨ NEW: Typing indicator handling
+let typingTimeout;
+const chatInput = document.getElementById("chatInput");
+
+if (chatInput) {
+  chatInput.addEventListener("input", () => {
+    // Emit typing event to server
+    socket.emit("visitorTyping", { typing: true });
+    
+    // Clear previous timeout
+    clearTimeout(typingTimeout);
+    
+    // Stop typing after 2 seconds of inactivity
+    typingTimeout = setTimeout(() => {
+      socket.emit("visitorTyping", { typing: false });
+    }, 2000);
   });
+}
 
-  // Unique visitor ID for this session
-  const visitorId = "visitor_" + Date.now();
-
-  socket.on("connect", () => {
-    socket.emit("joinVisitor", visitorId);
-    document.getElementById("chatStatusText").innerText = "Connected";
-    document.querySelector(".chat-status-dot").style.background = "green";
-  });
-
-  socket.on("disconnect", () => {
-    document.getElementById("chatStatusText").innerText = "Disconnected";
-    document.querySelector(".chat-status-dot").style.background = "red";
-  });
-
-  // Receive message from admin
-  socket.on("chatMessage", (data) => {
-    appendMessage(
-      data.sender === "admin" ? "Support" : "You",
-      data.text,
-      data.sender
-    );
-  });
-
-  // --- Open chat modal ---
-  function openChatModal() {
-    document.getElementById("chatModal").style.display = "block";
-  }
-
-  // --- Close chat modal ---
-  function closeChatModal() {
-    document.getElementById("chatModal").style.display = "none";
-  }
-
-  // --- Send message from visitor to admin ---
-  function sendChatMessage() {
-    const input = document.getElementById("chatInput");
-    const msg = input.value.trim();
-    if (!msg) return;
-
-    socket.emit("visitorMessage", { visitorId, text: msg });
-    appendMessage("You", msg, "visitor");
-    input.value = "";
-  }
-
-  // --- Press Enter to send ---
-  function handleChatKeyPress(e) {
-    if (e.key === "Enter") {
-      sendChatMessage();
+// ✨ NEW: Show admin typing indicator
+function showAdminTypingIndicator(isTyping) {
+  const chatBox = document.getElementById("chatMessages");
+  let typingDiv = document.getElementById("admin-typing-indicator");
+  
+  if (isTyping) {
+    if (!typingDiv) {
+      typingDiv = document.createElement("div");
+      typingDiv.id = "admin-typing-indicator";
+      typingDiv.classList.add("message", "agent-message");
+      typingDiv.innerHTML = `
+        <div class="message-avatar">
+          <i class="fas fa-user-tie"></i>
+        </div>
+        <div class="message-content">
+          <div class="message-text" style="font-style: italic; color: #666;">
+            Support is typing<span class="dots">...</span>
+          </div>
+        </div>
+      `;
+      chatBox.appendChild(typingDiv);
+      
+      // Animate dots
+      animateTypingDots();
+    }
+  } else {
+    if (typingDiv) {
+      typingDiv.remove();
     }
   }
+  
+  // Auto-scroll to bottom
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
 
-  // --- Append message to chat window ---
-  function appendMessage(sender, text, type) {
-    const chatBox = document.getElementById("chatMessages");
-    const msgDiv = document.createElement("div");
-    msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
-    msgDiv.innerHTML = `
-      <div class="message-avatar">
-        <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
-      </div>
-      <div class="message-content">
-        <div class="message-header">${sender}</div>
-        <div class="message-text">${text}</div>
-        <div class="message-time">${new Date().toLocaleTimeString()}</div>
-      </div>
-    `;
-    chatBox.appendChild(msgDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
+// ✨ NEW: Animate typing dots
+function animateTypingDots() {
+  const dotsSpan = document.querySelector("#admin-typing-indicator .dots");
+  if (!dotsSpan) return;
+  
+  let dotCount = 0;
+  const interval = setInterval(() => {
+    if (!document.getElementById("admin-typing-indicator")) {
+      clearInterval(interval);
+      return;
+    }
+    dotCount = (dotCount + 1) % 4;
+    dotsSpan.textContent = ".".repeat(dotCount);
+  }, 500);
+}
+
+// --- Open chat modal ---
+function openChatModal() {
+  document.getElementById("chatModal").style.display = "block";
+}
+
+// --- Close chat modal ---
+function closeChatModal() {
+  document.getElementById("chatModal").style.display = "none";
+}
+
+// --- Send message from visitor to admin ---
+function sendChatMessage() {
+  const input = document.getElementById("chatInput");
+  const msg = input.value.trim();
+  if (!msg) return;
+
+  // ✨ NEW: Clear typing indicator when sending message
+  socket.emit("visitorTyping", { typing: false });
+  clearTimeout(typingTimeout);
+
+  socket.emit("visitorMessage", { visitorId, text: msg });
+  appendMessage("You", msg, "visitor");
+  input.value = "";
+}
+
+// --- Press Enter to send ---
+function handleChatKeyPress(e) {
+  if (e.key === "Enter") {
+    sendChatMessage();
   }
+}
+
+// --- Append message to chat window ---
+function appendMessage(sender, text, type) {
+  const chatBox = document.getElementById("chatMessages");
+  const msgDiv = document.createElement("div");
+  msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
+  msgDiv.innerHTML = `
+    <div class="message-avatar">
+      <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
+    </div>
+    <div class="message-content">
+      <div class="message-header">${sender}</div>
+      <div class="message-text">${text}</div>
+      <div class="message-time">${new Date().toLocaleTimeString()}</div>
+    </div>
+  `;
+  chatBox.appendChild(msgDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
 // chart end

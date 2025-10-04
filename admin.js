@@ -579,6 +579,277 @@ function closeMailModal() {
 
 
 // Connect to your backend socket server
+// let selectedVisitorId = null;
+// let chatHistory = {}; // Store chat history for each visitor
+
+// const socket = io("https://valley.pvbonline.online");
+
+// // Load chat history from memory on page load
+// window.addEventListener('DOMContentLoaded', () => {
+//   loadAllChatHistory();
+// });
+
+// // Admin joins the admin room
+// socket.emit("joinAdmin", "admin_" + Date.now());
+
+// // Request chat history from server for all visitors
+// socket.emit("requestChatHistory");
+
+// // Receive chat history from server
+// socket.on("chatHistory", (data) => {
+//   console.log("📚 Received chat history from server:", data);
+  
+//   // Store all conversation history
+//   if (data && typeof data === 'object') {
+//     Object.keys(data).forEach(visitorId => {
+//       if (!chatHistory[visitorId]) {
+//         chatHistory[visitorId] = [];
+//       }
+      
+//       // Merge server history with local history
+//       data[visitorId].forEach(msg => {
+//         chatHistory[visitorId].push({
+//           sender: msg.sender || msg.from || "User",
+//           text: msg.text || msg.message,
+//           html: `<strong>${msg.sender || msg.from || "User"}:</strong> ${msg.text || msg.message}`,
+//           timestamp: msg.timestamp || Date.now()
+//         });
+//       });
+//     });
+    
+//     saveAllChatHistory();
+    
+//     // If a user is selected, reload their chat
+//     if (selectedVisitorId && chatHistory[selectedVisitorId]) {
+//       loadChatHistory(selectedVisitorId);
+//     }
+//   }
+// });
+
+// // Fetch active visitors
+// function loadChatUsers() {
+//   console.log("🔍 loadChatUsers called!");
+//   console.trace("Called from:");
+  
+//   const usersUl = document.getElementById("usersUl");
+//   if (!usersUl) {
+//     console.error("❌ usersUl element not found!");
+//     return;
+//   }
+  
+//   const existingVisitors = usersUl.querySelectorAll('li[id^="visitor-"]');
+//   console.log("📋 Existing visitors found:", existingVisitors.length);
+  
+//   if (existingVisitors.length === 0) {
+//     console.log("📋 No visitors, showing waiting message");
+//     usersUl.innerHTML = "<li><em>Waiting for visitors to send messages...</em></li>";
+//   } else {
+//     console.log("📋 Visitors already in list, preserving them");
+//   }
+// }
+
+// function selectUser(visitorId, email) {
+//   // Save current chat before switching (if there was a previous user)
+//   if (selectedVisitorId) {
+//     saveChatHistory(selectedVisitorId);
+//   }
+  
+//   selectedVisitorId = visitorId;
+  
+//   // Clear chat window
+//   const chatWindow = document.getElementById("chatWindow");
+//   chatWindow.innerHTML = "";
+  
+//   // Add header
+//   const headerDiv = document.createElement("div");
+//   headerDiv.style.padding = "10px";
+//   headerDiv.style.backgroundColor = "#f5f5f5";
+//   headerDiv.style.borderBottom = "2px solid #ddd";
+//   headerDiv.style.marginBottom = "10px";
+//   headerDiv.innerHTML = `<strong>Chatting with:</strong> ${email}`;
+//   chatWindow.appendChild(headerDiv);
+  
+//   // Initialize chat history for new visitor
+//   if (!chatHistory[visitorId]) {
+//     chatHistory[visitorId] = [];
+//     // Request history from server for this specific visitor
+//     socket.emit("requestVisitorHistory", { visitorId: visitorId });
+//   }
+  
+//   // Load previous chat history for this visitor
+//   loadChatHistory(visitorId);
+  
+//   console.log("Selected user:", visitorId, email);
+// }
+
+// // Save current chat to history
+// function saveChatHistory(visitorId) {
+//   const chatWindow = document.getElementById("chatWindow");
+//   const messages = chatWindow.querySelectorAll(".chat-message");
+  
+//   chatHistory[visitorId] = Array.from(messages).map(msg => {
+//     const strongTag = msg.querySelector("strong");
+//     const sender = strongTag ? strongTag.textContent.replace(":", "").trim() : "User";
+//     const text = msg.textContent.replace(/^[^:]+:\s*/, "").trim();
+    
+//     return {
+//       sender: sender,
+//       text: text,
+//       html: msg.innerHTML,
+//       timestamp: Date.now()
+//     };
+//   });
+  
+//   // Save to memory
+//   saveAllChatHistory();
+  
+//   console.log(`💾 Saved ${messages.length} messages for ${visitorId}`);
+// }
+
+// // Load chat history for a visitor
+// function loadChatHistory(visitorId) {
+//   const chatWindow = document.getElementById("chatWindow");
+  
+//   if (chatHistory[visitorId] && chatHistory[visitorId].length > 0) {
+//     chatHistory[visitorId].forEach(msg => {
+//       const msgDiv = document.createElement("div");
+//       msgDiv.className = "chat-message";
+//       msgDiv.style.padding = "8px";
+//       msgDiv.style.marginBottom = "5px";
+//       msgDiv.innerHTML = msg.html;
+//       chatWindow.appendChild(msgDiv);
+//     });
+    
+//     chatWindow.scrollTop = chatWindow.scrollHeight;
+//     console.log(`📂 Loaded ${chatHistory[visitorId].length} messages for ${visitorId}`);
+//   } else {
+//     console.log(`📭 No chat history for ${visitorId}`);
+//   }
+// }
+
+// // Save all chat history to memory (in-memory storage only)
+// function saveAllChatHistory() {
+//   // Store in memory - data persists during session
+//   window.adminChatHistory = chatHistory;
+//   console.log("💾 Saved all chat history to memory");
+// }
+
+// // Load all chat history from memory
+// function loadAllChatHistory() {
+//   if (window.adminChatHistory) {
+//     chatHistory = window.adminChatHistory;
+//     console.log("📂 Loaded chat history from memory");
+//   }
+// }
+
+// // Send message
+// function sendMessage() {
+//   if (!selectedVisitorId) {
+//     alert("Please select a user first.");
+//     return;
+//   }
+
+//   const input = document.getElementById("chatMessage");
+//   const message = input.value.trim();
+//   if (!message) return;
+
+//   socket.emit("adminMessage", { visitorId: selectedVisitorId, text: message });
+
+//   appendMessage("Admin", message);
+  
+//   // Save to history immediately
+//   if (!chatHistory[selectedVisitorId]) {
+//     chatHistory[selectedVisitorId] = [];
+//   }
+//   chatHistory[selectedVisitorId].push({
+//     sender: "Admin",
+//     text: message,
+//     html: `<strong>Admin:</strong> ${message}`,
+//     timestamp: Date.now()
+//   });
+//   saveAllChatHistory();
+  
+//   input.value = "";
+// }
+
+// // Receive visitor messages
+// socket.on("chatMessage", (data) => {
+//   console.log("📨 Received message:", data);
+  
+//   // Auto-add visitor to list if not already there
+//   if (!document.getElementById(`visitor-${data.visitorId}`)) {
+//     const usersUl = document.getElementById("usersUl");
+//     if (usersUl) {
+//       // Clear the "Waiting for visitors..." message
+//       if (usersUl.innerHTML.includes("Waiting for visitors")) {
+//         usersUl.innerHTML = "";
+//       }
+      
+//       // Create new visitor list item
+//       const li = document.createElement("li");
+//       li.textContent = data.visitorId;
+//       li.style.cursor = "pointer";
+//       li.style.padding = "8px";
+//       li.style.borderBottom = "1px solid #ddd";
+//       li.style.listStyle = "none";
+//       li.onclick = () => {
+//         selectUser(data.visitorId, data.visitorId);
+//         // Highlight selected user
+//         document.querySelectorAll("#usersUl li").forEach(item => {
+//           item.style.backgroundColor = "";
+//           item.style.fontWeight = "normal";
+//         });
+//         li.style.backgroundColor = "#e3f2fd";
+//       };
+//       li.id = `visitor-${data.visitorId}`;
+//       usersUl.appendChild(li);
+      
+//       console.log("✅ Added visitor to list:", data.visitorId);
+//     }
+//   }
+  
+//   // Initialize chat history if needed
+//   if (!chatHistory[data.visitorId]) {
+//     chatHistory[data.visitorId] = [];
+//   }
+  
+//   // Store message in history
+//   const messageData = {
+//     sender: "User",
+//     text: data.text,
+//     html: `<strong>User:</strong> ${data.text}`,
+//     timestamp: Date.now()
+//   };
+  
+//   chatHistory[data.visitorId].push(messageData);
+//   saveAllChatHistory();
+  
+//   // Handle the message display
+//   if (data.visitorId === selectedVisitorId) {
+//     appendMessage("User", data.text);
+//   } else {
+//     console.log("📩 New message from another visitor:", data);
+//     // Highlight visitor with new message
+//     const visitorLi = document.getElementById(`visitor-${data.visitorId}`);
+//     if (visitorLi) {
+//       visitorLi.style.backgroundColor = "#ffeb3b";
+//       visitorLi.style.fontWeight = "bold";
+//     }
+//   }
+// });
+
+// function appendMessage(sender, message) {
+//   const chatWindow = document.getElementById("chatWindow");
+//   const msgDiv = document.createElement("div");
+//   msgDiv.className = "chat-message";
+//   msgDiv.style.padding = "8px";
+//   msgDiv.style.marginBottom = "5px";
+//   msgDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
+//   chatWindow.appendChild(msgDiv);
+//   chatWindow.scrollTop = chatWindow.scrollHeight;
+// }
+
+
 let selectedVisitorId = null;
 let chatHistory = {}; // Store chat history for each visitor
 
@@ -742,6 +1013,75 @@ function loadAllChatHistory() {
   }
 }
 
+// Typing indicator handling
+let typingTimeout;
+const input = document.getElementById("chatMessage");
+
+if (input) {
+  input.addEventListener("input", () => {
+    if (!selectedVisitorId) return;
+    
+    // Emit typing event
+    socket.emit("adminTyping", { visitorId: selectedVisitorId, typing: true });
+    
+    // Clear previous timeout
+    clearTimeout(typingTimeout);
+    
+    // Stop typing after 2 seconds of inactivity
+    typingTimeout = setTimeout(() => {
+      socket.emit("adminTyping", { visitorId: selectedVisitorId, typing: false });
+    }, 2000);
+  });
+}
+
+// Listen for visitor typing
+socket.on("visitorTyping", (data) => {
+  if (data.visitorId === selectedVisitorId) {
+    showTypingIndicator(data.typing);
+  }
+});
+
+function showTypingIndicator(isTyping) {
+  const chatWindow = document.getElementById("chatWindow");
+  let typingDiv = document.getElementById("typing-indicator");
+  
+  if (isTyping) {
+    if (!typingDiv) {
+      typingDiv = document.createElement("div");
+      typingDiv.id = "typing-indicator";
+      typingDiv.style.padding = "8px";
+      typingDiv.style.fontStyle = "italic";
+      typingDiv.style.color = "#666";
+      typingDiv.innerHTML = "User is typing<span class='dots'>...</span>";
+      chatWindow.appendChild(typingDiv);
+      
+      // Animate dots
+      animateTypingDots();
+    }
+  } else {
+    if (typingDiv) {
+      typingDiv.remove();
+    }
+  }
+  
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+function animateTypingDots() {
+  const dotsSpan = document.querySelector("#typing-indicator .dots");
+  if (!dotsSpan) return;
+  
+  let dotCount = 0;
+  const interval = setInterval(() => {
+    if (!document.getElementById("typing-indicator")) {
+      clearInterval(interval);
+      return;
+    }
+    dotCount = (dotCount + 1) % 4;
+    dotsSpan.textContent = ".".repeat(dotCount);
+  }, 500);
+}
+
 // Send message
 function sendMessage() {
   if (!selectedVisitorId) {
@@ -752,6 +1092,10 @@ function sendMessage() {
   const input = document.getElementById("chatMessage");
   const message = input.value.trim();
   if (!message) return;
+
+  // Stop typing indicator
+  socket.emit("adminTyping", { visitorId: selectedVisitorId, typing: false });
+  clearTimeout(typingTimeout);
 
   socket.emit("adminMessage", { visitorId: selectedVisitorId, text: message });
 
@@ -848,134 +1192,6 @@ function appendMessage(sender, message) {
   chatWindow.appendChild(msgDiv);
   chatWindow.scrollTop = chatWindow.scrollHeight;
 }
-
-
-// let selectedVisitorId = null;
-
-// const socket = io("https://valley.pvbonline.online");
-
-// // Admin joins the admin room
-// socket.emit("joinAdmin", "admin_" + Date.now());
-
-// // Fetch active visitors
-// function loadChatUsers() {
-//   console.log("🔍 loadChatUsers called!");
-//   console.trace("Called from:");
-  
-//   const usersUl = document.getElementById("usersUl");
-//   if (!usersUl) {
-//     console.error("❌ usersUl element not found!");
-//     return;
-//   }
-  
-//   const existingVisitors = usersUl.querySelectorAll('li[id^="visitor-"]');
-//   console.log("📋 Existing visitors found:", existingVisitors.length);
-  
-//   if (existingVisitors.length === 0) {
-//     console.log("📋 No visitors, showing waiting message");
-//     usersUl.innerHTML = "<li><em>Waiting for visitors to send messages...</em></li>";
-//   } else {
-//     console.log("📋 Visitors already in list, preserving them");
-//   }
-// }
-
-// function selectUser(visitorId, email) {
-//   selectedVisitorId = visitorId;
-  
-//   // ✅ FIX: Clear chat window properly and add header
-//   const chatWindow = document.getElementById("chatWindow");
-//   chatWindow.innerHTML = ""; // Clear previous messages
-  
-//   // Add a header that won't be cleared
-//   const headerDiv = document.createElement("div");
-//   headerDiv.style.padding = "10px";
-//   headerDiv.style.backgroundColor = "#f5f5f5";
-//   headerDiv.style.borderBottom = "2px solid #ddd";
-//   headerDiv.style.marginBottom = "10px";
-//   headerDiv.innerHTML = `<strong>Chatting with:</strong> ${email}`;
-//   chatWindow.appendChild(headerDiv);
-  
-//   console.log("Selected user:", visitorId, email);
-// }
-
-// // Send message
-// function sendMessage() {
-//   if (!selectedVisitorId) {
-//     alert("Please select a user first.");
-//     return;
-//   }
-
-//   const input = document.getElementById("chatMessage");
-//   const message = input.value.trim();
-//   if (!message) return;
-
-//   socket.emit("adminMessage", { visitorId: selectedVisitorId, text: message });
-
-//   appendMessage("Admin", message);
-//   input.value = "";
-// }
-
-// // Receive visitor messages
-// socket.on("chatMessage", (data) => {
-//   console.log("📨 Received message:", data);
-  
-//   // Auto-add visitor to list if not already there
-//   if (!document.getElementById(`visitor-${data.visitorId}`)) {
-//     const usersUl = document.getElementById("usersUl");
-//     if (usersUl) {
-//       // Clear the "Waiting for visitors..." message
-//       if (usersUl.innerHTML.includes("Waiting for visitors")) {
-//         usersUl.innerHTML = "";
-//       }
-      
-//       // Create new visitor list item
-//       const li = document.createElement("li");
-//       li.textContent = data.visitorId;
-//       li.style.cursor = "pointer";
-//       li.style.padding = "8px";
-//       li.style.borderBottom = "1px solid #ddd";
-//       li.style.listStyle = "none";
-//       li.onclick = () => {
-//         selectUser(data.visitorId, data.visitorId);
-//         // Highlight selected user
-//         document.querySelectorAll("#usersUl li").forEach(item => {
-//           item.style.backgroundColor = "";
-//           item.style.fontWeight = "normal";
-//         });
-//         li.style.backgroundColor = "#e3f2fd";
-//       };
-//       li.id = `visitor-${data.visitorId}`;
-//       usersUl.appendChild(li);
-      
-//       console.log("✅ Added visitor to list:", data.visitorId);
-//     }
-//   }
-  
-//   // Handle the message
-//   if (data.visitorId === selectedVisitorId) {
-//     appendMessage("User", data.text);
-//   } else {
-//     console.log("📩 New message from another visitor:", data);
-//     // Highlight visitor with new message
-//     const visitorLi = document.getElementById(`visitor-${data.visitorId}`);
-//     if (visitorLi) {
-//       visitorLi.style.backgroundColor = "#ffeb3b";
-//       visitorLi.style.fontWeight = "bold";
-//     }
-//   }
-// });
-
-// function appendMessage(sender, message) {
-//   const chatWindow = document.getElementById("chatWindow");
-//   const msgDiv = document.createElement("div");
-//   msgDiv.className = "chat-message";
-//   msgDiv.style.padding = "8px";
-//   msgDiv.style.marginBottom = "5px";
-//   msgDiv.innerHTML = `<strong>${sender}:</strong> ${message}`;
-//   chatWindow.appendChild(msgDiv);
-//   chatWindow.scrollTop = chatWindow.scrollHeight;
-// }
-
 
 
 // Card
