@@ -433,10 +433,42 @@ document.getElementById("loanApplicationForm").addEventListener("submit", async 
 // Add this to your visitor/user chat JavaScript file
 
 // Typing indicator handling for visitor
-let typingTimeout;
+const socket = io("https://valley.pvbonline.online", {
+  transports: ["websocket"],
+  withCredentials: true
+});
 
-// Find your chat input element (adjust the ID to match your HTML)
-const chatInput = document.getElementById("messageInput"); // Change this ID if needed
+// Unique visitor ID for this session
+const visitorId = "visitor_" + Date.now();
+
+socket.on("connect", () => {
+  socket.emit("joinVisitor", visitorId);
+  document.getElementById("chatStatusText").innerText = "Connected";
+  document.querySelector(".chat-status-dot").style.background = "green";
+});
+
+socket.on("disconnect", () => {
+  document.getElementById("chatStatusText").innerText = "Disconnected";
+  document.querySelector(".chat-status-dot").style.background = "red";
+});
+
+// Receive message from admin
+socket.on("chatMessage", (data) => {
+  appendMessage(
+    data.sender === "admin" ? "Support" : "You",
+    data.text,
+    data.sender
+  );
+});
+
+// ✨ Listen for admin typing notification
+socket.on("adminTyping", (data) => {
+  showAdminTypingIndicator(data.typing);
+});
+
+// ✨ Typing indicator handling
+let typingTimeout;
+const chatInput = document.getElementById("chatInput");
 
 if (chatInput) {
   chatInput.addEventListener("input", () => {
@@ -453,29 +485,30 @@ if (chatInput) {
   });
 }
 
-// Listen for admin typing notification
-socket.on("adminTyping", (data) => {
-  showAdminTypingIndicator(data.typing);
-});
-
+// ✨ Show admin typing indicator
 function showAdminTypingIndicator(isTyping) {
-  // Find your chat box/window (adjust the ID to match your HTML)
-  const chatBox = document.getElementById("chatBox"); // Change this ID if needed
+  const chatBox = document.getElementById("chatMessages");
   let typingDiv = document.getElementById("admin-typing-indicator");
   
   if (isTyping) {
     if (!typingDiv) {
       typingDiv = document.createElement("div");
       typingDiv.id = "admin-typing-indicator";
-      typingDiv.style.padding = "8px";
-      typingDiv.style.fontStyle = "italic";
-      typingDiv.style.color = "#666";
-      typingDiv.style.fontSize = "14px";
-      typingDiv.innerHTML = "Admin is typing<span class='dots'>...</span>";
+      typingDiv.classList.add("message", "agent-message");
+      typingDiv.innerHTML = `
+        <div class="message-avatar">
+          <i class="fas fa-user-tie"></i>
+        </div>
+        <div class="message-content">
+          <div class="message-text" style="font-style: italic; color: #666;">
+            Support is typing<span class="dots">...</span>
+          </div>
+        </div>
+      `;
       chatBox.appendChild(typingDiv);
       
       // Animate dots
-      animateAdminTypingDots();
+      animateTypingDots();
     }
   } else {
     if (typingDiv) {
@@ -487,7 +520,8 @@ function showAdminTypingIndicator(isTyping) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-function animateAdminTypingDots() {
+// ✨ Animate typing dots
+function animateTypingDots() {
   const dotsSpan = document.querySelector("#admin-typing-indicator .dots");
   if (!dotsSpan) return;
   
@@ -502,86 +536,51 @@ function animateAdminTypingDots() {
   }, 500);
 }
 
-// Also update your send message function to clear typing indicator
-// Add this line at the beginning of your sendMessage function:
-function sendVisitorMessage() { // Your function name might be different
-  // Clear typing indicator when sending message
+function openChatModal() {
+  document.getElementById("chatModal").style.display = "block";
+}
+
+function closeChatModal() {
+  document.getElementById("chatModal").style.display = "none";
+}
+
+function sendChatMessage() {
+  const input = document.getElementById("chatInput");
+  const msg = input.value.trim();
+  if (!msg) return;
+  
+  // ✨ Clear typing indicator when sending message
   socket.emit("visitorTyping", { typing: false });
   clearTimeout(typingTimeout);
   
-  // ... rest of your send message code
+  socket.emit("visitorMessage", { visitorId, text: msg });
+  appendMessage("You", msg, "visitor");
+  input.value = "";
 }
 
-// const socket = io("https://valley.pvbonline.online", {
-//   transports: ["websocket"],
-//   withCredentials: true
-// });
+function handleChatKeyPress(e) {
+  if (e.key === "Enter") {
+    sendChatMessage();
+  }
+}
 
-// // Unique visitor ID for this session
-// const visitorId = "visitor_" + Date.now();
-
-// socket.on("connect", () => {
-//   socket.emit("joinVisitor", visitorId);
-//   document.getElementById("chatStatusText").innerText = "Connected";
-//   document.querySelector(".chat-status-dot").style.background = "green";
-// });
-
-// socket.on("disconnect", () => {
-//   document.getElementById("chatStatusText").innerText = "Disconnected";
-//   document.querySelector(".chat-status-dot").style.background = "red";
-// });
-
-// // Receive message from admin
-// socket.on("chatMessage", (data) => {
-//   appendMessage(
-//     data.sender === "admin" ? "Support" : "You",
-//     data.text,
-//     data.sender
-//   );
-// });
-
-// function openChatModal() {
-//   document.getElementById("chatModal").style.display = "block";
-// }
-
-// function closeChatModal() {
-//   document.getElementById("chatModal").style.display = "none";
-// }
-
-// function sendChatMessage() {
-//   const input = document.getElementById("chatInput");
-//   const msg = input.value.trim();
-//   if (!msg) return;
-  
-//   socket.emit("visitorMessage", { visitorId, text: msg });
-//   appendMessage("You", msg, "visitor");
-//   input.value = "";
-// }
-
-// function handleChatKeyPress(e) {
-//   if (e.key === "Enter") {
-//     sendChatMessage();
-//   }
-// }
-
-// function appendMessage(sender, text, type) {
-//   const chatBox = document.getElementById("chatMessages");
-//   const msgDiv = document.createElement("div");
-//   msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
-//   msgDiv.innerHTML = `
-//     <div class="message-avatar">
-//       <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
-//     </div>
-//     <div class="message-content">
-//       <div class="message-header">${sender}</div>
-//       <div class="message-text">${text}</div>
-//       <div class="message-time">${new Date().toLocaleTimeString()}</div>
-//     </div>
-//   `;
-//   chatBox.appendChild(msgDiv);
-//   chatBox.scrollTop = chatBox.scrollHeight;
-// }
-
+function appendMessage(sender, text, type) {
+  const chatBox = document.getElementById("chatMessages");
+  const msgDiv = document.createElement("div");
+  msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
+  msgDiv.innerHTML = `
+    <div class="message-avatar">
+      <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
+    </div>
+    <div class="message-content">
+      <div class="message-header">${sender}</div>
+      <div class="message-text">${text}</div>
+      <div class="message-time">${new Date().toLocaleTimeString()}</div>
+    </div>
+  `;
+  chatBox.appendChild(msgDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
 
 
   
