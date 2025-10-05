@@ -11,6 +11,26 @@
     input, select { width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px; }
     button { margin-top: 20px; width: 100%; padding: 12px; border: none; border-radius: 8px; background: #667eea; color: #fff; font-size: 16px; cursor: pointer; }
     button:hover { background: #5a67d8; }
+    .loading {
+  display: none;
+  text-align: center;
+  margin: 10px 0;
+}
+
+.spinner {
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #667eea;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
   </style>
 </head>
 <body>
@@ -19,7 +39,10 @@
     <form id="fundForm">
       <label for="card">Select Card</label>
       <select id="cardSelect" required></select>
-
+       <div id="loadingCards" class="loading">
+        <div class="spinner"></div>
+        <p>Loading cards...</p>
+       </div>
       <label for="source">Fund From</label>
       <select id="source" required>
         <option value="current">Current Account</option>
@@ -30,15 +53,21 @@
       <input type="number" id="amount" min="100" required>
 
       <button type="submit">🚀 Fund Card</button>
+          <div id="loadingSubmit" class="loading">
+           <div class="spinner"></div>
+           <p>Processing...</p>
+          </div>
     </form>
   </div>
 
   <script>
     async function loadCards() {
+       document.getElementById("loadingCards").style.display = "block";
       const res = await fetch("https://valley.pvbonline.online/api/users/my-cards", {
         headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
       });
       const cards = await res.json();
+       document.getElementById("loadingCards").style.display = "none";
       const select = document.getElementById("cardSelect");
 
       if (cards.length === 0) {
@@ -57,6 +86,7 @@
 
     document.getElementById("fundForm").addEventListener("submit", async (e) => {
       e.preventDefault();
+      document.getElementById("loadingSubmit").style.display = "block";
       const cardId = document.getElementById("cardSelect").value;
       const amount = document.getElementById("amount").value;
       const source = document.getElementById("source").value;
@@ -72,6 +102,7 @@
         });
 
         const data = await res.json();
+        document.getElementById("loadingSubmit").style.display = "none";
         if (res.ok) {
           alert(`✅ Card funded successfully from ${source}! New Balance: $${data.card.cardBalance}`);
           window.location.href = "view-cards.html";
@@ -79,6 +110,7 @@
           alert("❌ Error: " + data.message);
         }
       } catch (err) {
+         document.getElementById("loadingSubmit").style.display = "none";
         alert("Network error: " + err.message);
       }
     });
