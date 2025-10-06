@@ -316,10 +316,17 @@ loginForm?.addEventListener("submit", async (e) => {
     if (!res.ok) {
       alert(data.message || "Login failed");
     } else {
-      localStorage.setItem("adminToken", data.token);
-      localStorage.setItem("adminUsername", data.username);
-      window.location.href = "admin.html"; // dashboard
-    }
+  localStorage.setItem("adminToken", data.token);
+  localStorage.setItem("adminUsername", data.username);
+  localStorage.setItem("adminRole", data.role);  // ADD THIS LINE
+  
+  // ADD THIS ROLE-BASED REDIRECT
+  if (data.role === "superadmin") {
+    window.location.href = "superadmin-dashboard.html";
+  } else {
+    window.location.href = "admin.html";
+  }
+}
   } catch (error) {
     console.error("Login error:", error);
     alert("An error occurred. Contact Admin Dev.");
