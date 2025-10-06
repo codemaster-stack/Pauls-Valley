@@ -279,6 +279,7 @@ signupForm?.addEventListener("submit", async (e) => {
   }
 
   try {
+    console.log("Sending data:", { username, email, password, secretCode });
     const res = await fetch(`${API_URL}/register`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
