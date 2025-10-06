@@ -170,18 +170,13 @@
         <label for="adminConfirmPassword">Confirm Password</label>
         <input type="password" id="adminConfirmPassword" required>
       </div>
-       <div class="form-group">
-  <label for="adminConfirmPassword">Confirm Password</label>
-  <input type="password" id="adminConfirmPassword" required>
-</div>
-
+       
 <!-- ADD THIS NEW FIELD -->
-<div class="form-group">
-  <label for="secretCode">Super Admin Secret Code (Optional)</label>
-  <input type="password" id="secretCode" placeholder="Leave blank for regular admin">
-</div>
+     <div class="form-group">
+       <label for="secretCode">Super Admin Secret Code (Optional)</label>
+       <input type="password" id="secretCode" placeholder="Leave blank for regular admin">
+     </div>
 
-<button type="submit">Create Admin</button>
       <button type="submit">Create Admin</button>
     </form>
 
@@ -275,6 +270,7 @@ signupForm?.addEventListener("submit", async (e) => {
   const email = document.getElementById("adminEmail").value.trim();
   const password = document.getElementById("adminPassword").value.trim();
   const confirmPassword = document.getElementById("adminConfirmPassword").value.trim();
+  const secretCode = document.getElementById("secretCode").value.trim();
 
   if (password !== confirmPassword) {
     alert("Passwords do not match!");
@@ -321,7 +317,7 @@ loginForm?.addEventListener("submit", async (e) => {
     const res = await fetch(`${API_URL}/login`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ email, password, secretCode }),
     });
 
     const data = await res.json();
