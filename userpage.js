@@ -879,7 +879,7 @@ document.getElementById("contactForm").addEventListener("submit", function (e) {
   const subject = document.getElementById("contactSubject").value;
   const message = document.getElementById("contactMessage").value;
 
-  const adminEmail = "info@pvbonline.online"; // replace with your real admin email
+  const adminEmail = "support@pvbonline.online"; // replace with your real admin email
 
   const mailtoLink = `mailto:${adminEmail}?cc=${encodeURIComponent(email)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent("From: " + name + " (" + email + ")\n\n" + message)}`;
 

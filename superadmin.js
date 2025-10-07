@@ -66,6 +66,12 @@ if (sectionId === 'recycleBin') {
   }
 }
 
+if (sectionId === 'sentEmails') {
+  if (typeof window.loadSentEmails === 'function') {
+    window.loadSentEmails();
+  }
+}
+
 if (sectionId === 'chatHistory') {
   if (typeof window.loadChatHistoryView === 'function') {
     window.loadChatHistoryView();
@@ -536,6 +542,8 @@ if (transferForm) {
     }
   });
 }
+
+//Get Send Email
 
   // Send Email Form
   // const sendEmailForm = document.getElementById('sendEmailForm');
@@ -1226,7 +1234,7 @@ function appendMessage(sender, message) {
 }
 
 
-                                                                    // ==================== SUPER ADMIN SPECIFIC FUNCTIONS ====================
+ // ==================== SUPER ADMIN SPECIFIC FUNCTIONS ====================
 
 // Load all admins
 window.loadAdmins = async function() {
@@ -2058,3 +2066,37 @@ function displayAllCards(cards) {
     // Option 3: Open in popup window
     // window.open('admin-card-creation.html', 'cardCreation', 'width=1200,height=800,scrollbars=yes');
 }
+
+// Load sent emails
+window.loadSentEmails = async function() {
+  const tbody = document.getElementById('sentEmailsTableBody');
+  if (!tbody) return;
+  
+  tbody.innerHTML = '<tr><td colspan="6" class="loading">Loading emails...</td></tr>';
+  
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/admin/auth/sent-emails`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem("adminToken")}` }
+    });
+    
+    const result = await response.json();
+    
+    if (response.ok && result.emails) {
+      tbody.innerHTML = result.emails.map(email => `
+        <tr>
+          <td>${email.senderId?.username || email.senderEmail} (${email.senderType})</td>
+          <td>${email.recipientName || email.recipientEmail}</td>
+          <td>${email.subject}</td>
+          <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis;">${email.message}</td>
+          <td><span class="status-${email.status}">${email.status}</span></td>
+          <td>${new Date(email.sentAt).toLocaleString()}</td>
+        </tr>
+      `).join('');
+    } else {
+      tbody.innerHTML = '<tr><td colspan="6">Failed to load emails</td></tr>';
+    }
+  } catch (error) {
+    console.error('Error loading emails:', error);
+    tbody.innerHTML = '<tr><td colspan="6">Error loading emails</td></tr>';
+  }
+};

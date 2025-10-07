@@ -89,7 +89,7 @@ if (loginForm) {
       } else {
         // Check if account is deactivated
         if (result.type === 'ACCOUNT_DEACTIVATED') {
-          alert(`${result.message}\n\nContact Information:\n📧 Email: info@pvbonline.online\n💬 Live Chat: Available 24/7 on our website`);
+          alert(`${result.message}\n\nContact Information:\n📧 Email: support@pvbonline.online\n💬 Live Chat: Available 24/7 on our website`);
         } else {
           alert(result.message || "Login failed.");
         }
@@ -147,7 +147,7 @@ if (forgotForm) {
     const button = forgotForm.querySelector("button[type='submit']");
     setButtonLoading(button, true);
 
-    const email = $("#forgotEmail").value;
+    const email = $("#forgot").value;
     try {
       const res = await fetch(`${API_URL}/forgot`, {
         method: "POST",
@@ -334,7 +334,7 @@ document.getElementById("contactForm").addEventListener("submit", function (e) {
   const subject = document.getElementById("contactSubject").value;
   const message = document.getElementById("contactMessage").value;
 
-  const adminEmail = "info@pvbonline.online"; // replace with your real admin email
+  const adminEmail = "support@pvbonline.online"; // replace with your real admin email
 
   const mailtoLink = `mailto:${adminEmail}?cc=${encodeURIComponent(email)}&subject=${encodeURIComponent(subject)}&body=${encodeURIComponent("From: " + name + " (" + email + ")\n\n" + message)}`;
 

@@ -41,6 +41,7 @@
        <li><button onclick="openSection('manageAdmins')">⚙️ Manage Admins</button></li>
        <li><button onclick="openSection('recycleBin')">🗑️ Recycle Bin</button></li>
        <li><button onclick="openSection('chatHistory')">💬 All Chat History</button></li>
+       <li><button onclick="openSection('sentEmails')">📧 Sent Emails</button></li>
     </ul>
   </div>
 
@@ -452,6 +453,26 @@
       <p>Select a user to view chat history</p>
     </div>
   </div>
+</div>
+
+        <!-- Sent Emails Section -->
+<div id="sentEmails" class="section">
+  <h1>📧 All Sent Emails</h1>
+  <table border="1" cellpadding="10" cellspacing="0" style="width:100%; border-collapse: collapse;">
+    <thead>
+      <tr>
+        <th>Sent By</th>
+        <th>Recipient</th>
+        <th>Subject</th>
+        <th>Message</th>
+        <th>Status</th>
+        <th>Date</th>
+      </tr>
+    </thead>
+    <tbody id="sentEmailsTableBody">
+      <!-- Emails will be injected here -->
+    </tbody>
+  </table>
 </div>
 
   </div>
