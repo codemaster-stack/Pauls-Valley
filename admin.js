@@ -1803,7 +1803,7 @@ function displayAllCards(cards) {
 
 async function loadWalletBalance() {
   try {
-    const response = await fetch('/api/admin/auth/wallet', {
+    const response = await fetch('https://valley.pvbonline.online/api/admin/auth/wallet', {
       headers: {
         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
       }
@@ -1812,7 +1812,7 @@ async function loadWalletBalance() {
     
     const data = await response.json();
     const walletEl = document.getElementById('walletBalance');
-    walletEl.textContent = `$${parseFloat(data.balance).toFixed(2)}`;
+    walletEl.textContent = `$${parseFloat(data.wallet).toFixed(2)}`;
   } catch (err) {
     console.error(err);
     document.getElementById('walletBalance').textContent = 'Error';
