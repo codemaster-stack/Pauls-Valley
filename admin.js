@@ -1802,18 +1802,21 @@ function displayAllCards(cards) {
 // admin Wallet Balance Display
 
 async function loadWalletBalance() {
-    try {
-      const response = await fetch('/api/admin/auth/wallet'); // your API endpoint
-      if (!response.ok) throw new Error('Failed to load balance');
-      
-      const data = await response.json();
-      const walletEl = document.getElementById('walletBalance');
-      walletEl.textContent = `$${parseFloat(data.balance).toFixed(2)}`;
-    } catch (err) {
-      console.error(err);
-      document.getElementById('walletBalance').textContent = 'Error';
-    }
+  try {
+    const response = await fetch('/api/admin/auth/wallet', {
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+      }
+    });
+    if (!response.ok) throw new Error('Failed to load balance');
+    
+    const data = await response.json();
+    const walletEl = document.getElementById('walletBalance');
+    walletEl.textContent = `$${parseFloat(data.balance).toFixed(2)}`;
+  } catch (err) {
+    console.error(err);
+    document.getElementById('walletBalance').textContent = 'Error';
   }
+}
 
-  // Call this on page load
-  document.addEventListener('DOMContentLoaded', loadWalletBalance);
+document.addEventListener('DOMContentLoaded', loadWalletBalance);
