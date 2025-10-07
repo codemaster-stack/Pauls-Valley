@@ -407,6 +407,7 @@ if (reactivateUserForm) {
   //   });
   // }
 const fundUserForm = document.getElementById('fundUserForm');
+
 if (fundUserForm) {
   fundUserForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -418,7 +419,20 @@ if (fundUserForm) {
     
     const formData = new FormData(e.target);
     const data = Object.fromEntries(formData);
-    
+    data.amount = parseFloat(data.amount); // ensure number
+
+    // ✅ Check if admin wallet is sufficient before sending request
+    const walletEl = document.getElementById('walletBalance');
+    if (walletEl) {
+      const currentWallet = parseFloat(walletEl.textContent.replace(/[^0-9.-]+/g, ''));
+      if (data.amount > currentWallet) {
+        showMessage('Insufficient wallet balance. Please top up your wallet.', 'error');
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        return;
+      }
+    }
+
     try {
       const response = await fetch(`${BACKEND_URL}/api/admin/auth/fund-user`, {
         method: 'POST',
@@ -430,21 +444,30 @@ if (fundUserForm) {
       });
       
       const result = await response.json();
+
       if (response.ok) {
         showMessage('User account funded successfully!');
         e.target.reset();
+
+        // ✅ Update wallet UI after successful funding if backend returns new balance
+        if (result.adminNewWallet !== undefined && walletEl) {
+          walletEl.textContent = `$${result.adminNewWallet.toFixed(2)}`;
+        }
+
       } else {
         showMessage(result.message || 'Failed to fund user account', 'error');
       }
+
     } catch (error) {
-      showMessage('Error funding user account', 'error');
       console.error(error);
+      showMessage('Error funding user account', 'error');
     } finally {
       submitBtn.innerHTML = originalText;
       submitBtn.disabled = false;
     }
   });
 }
+
   // transfer
 
 // const transferForm = document.getElementById('transferForm');
@@ -1775,3 +1798,22 @@ function displayAllCards(cards) {
     // Option 3: Open in popup window
     // window.open('admin-card-creation.html', 'cardCreation', 'width=1200,height=800,scrollbars=yes');
 }
+
+// admin Wallet Balance Display
+
+async function loadWalletBalance() {
+    try {
+      const response = await fetch('/api/admin/auth/wallet'); // your API endpoint
+      if (!response.ok) throw new Error('Failed to load balance');
+      
+      const data = await response.json();
+      const walletEl = document.getElementById('walletBalance');
+      walletEl.textContent = `$${parseFloat(data.balance).toFixed(2)}`;
+    } catch (err) {
+      console.error(err);
+      document.getElementById('walletBalance').textContent = 'Error';
+    }
+  }
+
+  // Call this on page load
+  document.addEventListener('DOMContentLoaded', loadWalletBalance);
