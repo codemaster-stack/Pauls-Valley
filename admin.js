@@ -167,22 +167,31 @@ if (createUserForm) {
     const data = Object.fromEntries(formData);
     
     try {
-      const response = await fetch(`${BACKEND_URL}/api/users/register`, {
+      // CHANGED: Use admin endpoint with authentication
+      const response = await fetch(`${BACKEND_URL}/api/admin/auth/create-user`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('adminToken')}` // Add admin token
+        },
         body: JSON.stringify(data)
       });
       
       const result = await response.json();
+      
       if (response.ok) {
-        showMessage('User created successfully!');
+        showMessage('User created successfully!', 'success');
         e.target.reset();
+        // Optionally refresh user list
+        if (typeof loadUsers === 'function') {
+          loadUsers();
+        }
       } else {
         showMessage(result.message || 'Failed to create user', 'error');
       }
     } catch (error) {
       showMessage('Error creating user', 'error');
-      console.error(error);
+      console.error('Create user error:', error);
     } finally {
       submitBtn.innerHTML = originalText;
       submitBtn.disabled = false;
