@@ -324,12 +324,13 @@ loginForm?.addEventListener("submit", async (e) => {
     const data = await res.json();
     if (!res.ok) {
       alert(data.message || "Login failed");
-    } else {
+   } else {
   localStorage.setItem("adminToken", data.token);
   localStorage.setItem("adminUsername", data.username);
-  localStorage.setItem("adminRole", data.role);  // ADD THIS LINE
+  localStorage.setItem("adminEmail", data.email);  // ADD THIS LINE
+  localStorage.setItem("adminRole", data.role);
   
-  // ADD THIS ROLE-BASED REDIRECT
+  // Role-based redirect
   if (data.role === "superadmin") {
     window.location.href = "superadmin-dashboard.html";
   } else {

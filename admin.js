@@ -1126,7 +1126,13 @@ function sendMessage() {
   socket.emit("adminTyping", { visitorId: selectedVisitorId, typing: false });
   clearTimeout(typingTimeout);
 
-  socket.emit("adminMessage", { visitorId: selectedVisitorId, text: message });
+  // socket.emit("adminMessage", { visitorId: selectedVisitorId, text: message });
+  socket.emit("adminMessage", { 
+  visitorId: selectedVisitorId, 
+  text: message,
+  adminEmail: localStorage.getItem("adminEmail"),
+  adminName: localStorage.getItem("adminUsername")
+});
 
   appendMessage("Admin", message);
   

@@ -1218,51 +1218,151 @@ async function permanentDeleteUser(email) {
 }
 
 // Load chat history for super admin
+// window.loadChatHistoryView = async function() {
+//   const userList = document.getElementById('chatHistoryUserList');
+//   if (!userList) return;
+  
+//   userList.innerHTML = '<li style="padding: 10px;">Loading users...</li>';
+  
+//   // Get all users who have chat history
+//   if (window.adminChatHistory && Object.keys(window.adminChatHistory).length > 0) {
+//     const visitors = Object.keys(window.adminChatHistory);
+//     userList.innerHTML = visitors.map(visitorId => `
+//       <li style="padding: 10px; cursor: pointer; border-bottom: 1px solid #ddd;" 
+//           onclick="displayChatHistory('${visitorId}')">
+//         ${visitorId}
+//       </li>
+//     `).join('');
+//   } else {
+//     userList.innerHTML = '<li style="padding: 10px;">No chat history available</li>';
+//   }
+// };
+// Load chat history for super admin (from database)
 window.loadChatHistoryView = async function() {
   const userList = document.getElementById('chatHistoryUserList');
+  const chatDisplay = document.getElementById('chatHistoryDisplay');
+  
   if (!userList) return;
   
   userList.innerHTML = '<li style="padding: 10px;">Loading users...</li>';
   
-  // Get all users who have chat history
-  if (window.adminChatHistory && Object.keys(window.adminChatHistory).length > 0) {
-    const visitors = Object.keys(window.adminChatHistory);
-    userList.innerHTML = visitors.map(visitorId => `
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/chat/history`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem("adminToken")}` }
+    });
+    
+    if (!response.ok) throw new Error('Failed to load chat history');
+    
+    const data = await response.json();
+    const messages = data.messages;
+    
+    if (!messages || messages.length === 0) {
+      userList.innerHTML = '<li style="padding: 10px;">No chat history available</li>';
+      chatDisplay.innerHTML = '<p>No messages found</p>';
+      return;
+    }
+    
+    // Group messages by user/visitor
+    const chatsByUser = {};
+    messages.forEach(msg => {
+      const userId = msg.sender === 'admin' ? msg.receiverEmail : msg.senderEmail;
+      if (!chatsByUser[userId]) {
+        chatsByUser[userId] = [];
+      }
+      chatsByUser[userId].push(msg);
+    });
+    
+    // Display user list
+    userList.innerHTML = Object.keys(chatsByUser).map(userId => `
       <li style="padding: 10px; cursor: pointer; border-bottom: 1px solid #ddd;" 
-          onclick="displayChatHistory('${visitorId}')">
-        ${visitorId}
+          onclick="displayDatabaseChatHistory('${userId}')">
+        ${userId} <span style="color: #666; font-size: 12px;">(${chatsByUser[userId].length} messages)</span>
       </li>
     `).join('');
-  } else {
-    userList.innerHTML = '<li style="padding: 10px;">No chat history available</li>';
+    
+    // Store for access
+    window.databaseChatHistory = chatsByUser;
+    
+  } catch (error) {
+    console.error('Error loading chat history:', error);
+    userList.innerHTML = '<li style="padding: 10px; color: red;">Error loading chat history</li>';
   }
 };
 
-// Display specific user's chat history
-function displayChatHistory(visitorId) {
+// Display specific user's chat history from database
+window.displayDatabaseChatHistory = async function(userEmail) {
   const display = document.getElementById('chatHistoryDisplay');
   if (!display) return;
   
-  const history = window.adminChatHistory[visitorId];
-  
-  if (history && history.length > 0) {
+  try {
+    const response = await fetch(`${BACKEND_URL}/api/chat/history/${userEmail}`, {
+      headers: { 'Authorization': `Bearer ${localStorage.getItem("adminToken")}` }
+    });
+    
+    if (!response.ok) throw new Error('Failed to load chat');
+    
+    const data = await response.json();
+    const messages = data.messages;
+    
+    if (!messages || messages.length === 0) {
+      display.innerHTML = `<p>No messages found for ${userEmail}</p>`;
+      return;
+    }
+    
     display.innerHTML = `
-      <h3>Chat History with ${visitorId}</h3>
-      <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
-        ${history.map(msg => `
-          <div style="padding: 8px; margin-bottom: 5px; background: ${msg.sender === 'Admin' ? '#e3f2fd' : '#f5f5f5'}; border-radius: 5px;">
-            <strong>${msg.sender}:</strong> ${msg.text}
-            <div style="font-size: 11px; color: #666; margin-top: 5px;">
-              ${new Date(msg.timestamp).toLocaleString()}
+      <h2>💬 Chat History with ${userEmail}</h2>
+      <div style="max-height: 600px; overflow-y: auto; border: 1px solid #ddd; padding: 15px; border-radius: 5px; background: #f9f9f9;">
+        ${messages.map(msg => `
+          <div style="margin-bottom: 15px; padding: 12px; background: ${msg.sender === 'admin' ? '#e3f2fd' : '#fff'}; border-radius: 8px; border-left: 3px solid ${msg.sender === 'admin' ? '#2196F3' : '#4CAF50'};">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 5px;">
+              <strong style="color: ${msg.sender === 'admin' ? '#1976D2' : '#388E3C'};">
+                ${msg.sender === 'admin' ? `👨‍💼 ${msg.senderName}` : '👤 User'}
+              </strong>
+              <small style="color: #666;">${new Date(msg.createdAt).toLocaleString()}</small>
             </div>
+            <div style="color: #333;">${msg.message}</div>
           </div>
         `).join('')}
       </div>
     `;
-  } else {
-    display.innerHTML = `<p>No messages found for ${visitorId}</p>`;
+    
+    // Scroll to bottom
+    const chatContainer = display.querySelector('div');
+    if (chatContainer) {
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+    
+  } catch (error) {
+    console.error('Error loading chat for user:', error);
+    display.innerHTML = `<p style="color: red;">Error loading chat history for ${userEmail}</p>`;
   }
-}
+};
+
+// Display specific user's chat history
+// function displayChatHistory(visitorId) {
+//   const display = document.getElementById('chatHistoryDisplay');
+//   if (!display) return;
+  
+//   const history = window.adminChatHistory[visitorId];
+  
+//   if (history && history.length > 0) {
+//     display.innerHTML = `
+//       <h3>Chat History with ${visitorId}</h3>
+//       <div style="max-height: 500px; overflow-y: auto; border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
+//         ${history.map(msg => `
+//           <div style="padding: 8px; margin-bottom: 5px; background: ${msg.sender === 'Admin' ? '#e3f2fd' : '#f5f5f5'}; border-radius: 5px;">
+//             <strong>${msg.sender}:</strong> ${msg.text}
+//             <div style="font-size: 11px; color: #666; margin-top: 5px;">
+//               ${new Date(msg.timestamp).toLocaleString()}
+//             </div>
+//           </div>
+//         `).join('')}
+//       </div>
+//     `;
+//   } else {
+//     display.innerHTML = `<p>No messages found for ${visitorId}</p>`;
+//   }
+// }
 
 // Admin management form handlers
 document.addEventListener("DOMContentLoaded", () => {
