@@ -280,40 +280,119 @@ if (deleteUserForm) {
   //     }
   //   });
   // }
-const deactivateUserForm = document.getElementById('deactivateUserForm');
-if (deactivateUserForm) {
-  deactivateUserForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = e.target.email.value;
+
+// const deactivateUserForm = document.getElementById('deactivateUserForm');
+// if (deactivateUserForm) {
+//   deactivateUserForm.addEventListener('submit', async (e) => {
+//     e.preventDefault();
+//     const email = e.target.email.value;
     
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<span class="spinner"></span> Deactivating...';
-    submitBtn.disabled = true;
+//     const submitBtn = e.target.querySelector('button[type="submit"]');
+//     const originalText = submitBtn.innerHTML;
+//     submitBtn.innerHTML = '<span class="spinner"></span> Deactivating...';
+//     submitBtn.disabled = true;
     
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/admin/auth/users/${email}/deactivate`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem("adminToken")}` }
-      });
+//     try {
+//       const response = await fetch(`${BACKEND_URL}/api/admin/auth/users/${email}/deactivate`, {
+//         method: 'PUT',
+//         headers: { 'Authorization': `Bearer ${localStorage.getItem("adminToken")}` }
+//       });
       
-      const result = await response.json();
-      if (response.ok) {
-        showMessage('User deactivated successfully!');
-        e.target.reset();
-      } else {
-        showMessage(result.message || 'Failed to deactivate user', 'error');
-      }
-    } catch (error) {
-      showMessage('Error deactivating user', 'error');
-      console.error(error);
-    } finally {
-      submitBtn.innerHTML = originalText;
-      submitBtn.disabled = false;
-    }
-  });
-}
+//       const result = await response.json();
+//       if (response.ok) {
+//         showMessage('User deactivated successfully!');
+//         e.target.reset();
+//       } else {
+//         showMessage(result.message || 'Failed to deactivate user', 'error');
+//       }
+//     } catch (error) {
+//       showMessage('Error deactivating user', 'error');
+//       console.error(error);
+//     } finally {
+//       submitBtn.innerHTML = originalText;
+//       submitBtn.disabled = false;
+//     }
+//   });
+// }
   
+const deactivateUserForm = document.getElementById('deactivateUserForm');
+  if (deactivateUserForm) {
+    deactivateUserForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = e.target.email.value;
+      
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<span class="spinner"></span> Deactivating...';
+      submitBtn.disabled = true;
+      
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/admin/auth/users/${email}/deactivate`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem("adminToken")}` }
+        });
+        
+        const result = await response.json();
+        if (response.ok) {
+          showMessage('User deactivated successfully!', 'success');
+          e.target.reset();
+          // Refresh deactivated users list if function exists
+          if (typeof loadDeactivatedUsers === 'function') loadDeactivatedUsers();
+        } else {
+          showMessage(result.message || 'Failed to deactivate user', 'error');
+        }
+      } catch (error) {
+        showMessage('Error deactivating user', 'error');
+        console.error(error);
+      } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+  }
+  
+  // ========== REACTIVATE USER (ADMIN & SUPERADMIN) ==========
+  
+  const reactivateUserForm = document.getElementById('reactivateUserForm');
+  if (reactivateUserForm) {
+    reactivateUserForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const email = e.target.email.value;
+      
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<span class="spinner"></span> Reactivating...';
+      submitBtn.disabled = true;
+      
+      try {
+        const response = await fetch(`${BACKEND_URL}/api/admin/auth/users/${email}/reactivate`, {
+          method: 'PUT',
+          headers: { 'Authorization': `Bearer ${localStorage.getItem("adminToken")}` }
+        });
+        
+        const result = await response.json();
+        
+        if (response.ok) {
+          showMessage('User reactivated successfully!', 'success');
+          e.target.reset();
+          if (typeof loadDeactivatedUsers === 'function') loadDeactivatedUsers();
+        } else if (response.status === 403) {
+          // Permission denied - show clear message
+          showMessage(result.message || 'You do not have permission to reactivate this user', 'error');
+        } else {
+          showMessage(result.message || 'Failed to reactivate user', 'error');
+        }
+      } catch (error) {
+        showMessage('Error reactivating user', 'error');
+        console.error(error);
+      } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+      }
+    });
+  }
+  
+
   // Reactivate User Form
 
 //   const reactivateUserForm = document.getElementById('reactivateUserForm');
@@ -341,39 +420,40 @@ if (deactivateUserForm) {
 //     }
 //   });
 // }
-const reactivateUserForm = document.getElementById('reactivateUserForm');
-if (reactivateUserForm) {
-  reactivateUserForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const email = e.target.email.value;
+
+// const reactivateUserForm = document.getElementById('reactivateUserForm');
+// if (reactivateUserForm) {
+//   reactivateUserForm.addEventListener('submit', async (e) => {
+//     e.preventDefault();
+//     const email = e.target.email.value;
     
-    const submitBtn = e.target.querySelector('button[type="submit"]');
-    const originalText = submitBtn.innerHTML;
-    submitBtn.innerHTML = '<span class="spinner"></span> Reactivating...';
-    submitBtn.disabled = true;
+//     const submitBtn = e.target.querySelector('button[type="submit"]');
+//     const originalText = submitBtn.innerHTML;
+//     submitBtn.innerHTML = '<span class="spinner"></span> Reactivating...';
+//     submitBtn.disabled = true;
     
-    try {
-      const response = await fetch(`${BACKEND_URL}/api/admin/auth/users/${email}/reactivate`, {
-        method: 'PUT',
-        headers: { 'Authorization': `Bearer ${localStorage.getItem("adminToken")}` }
-      });
+//     try {
+//       const response = await fetch(`${BACKEND_URL}/api/admin/auth/users/${email}/reactivate`, {
+//         method: 'PUT',
+//         headers: { 'Authorization': `Bearer ${localStorage.getItem("adminToken")}` }
+//       });
       
-      const result = await response.json();
-      if (response.ok) {
-        showMessage('User reactivated successfully!');
-        e.target.reset();
-      } else {
-        showMessage(result.message || 'Failed to reactivate user', 'error');
-      }
-    } catch (error) {
-      showMessage('Error reactivating user', 'error');
-      console.error(error);
-    } finally {
-      submitBtn.innerHTML = originalText;
-      submitBtn.disabled = false;
-    }
-  });
-}
+//       const result = await response.json();
+//       if (response.ok) {
+//         showMessage('User reactivated successfully!');
+//         e.target.reset();
+//       } else {
+//         showMessage(result.message || 'Failed to reactivate user', 'error');
+//       }
+//     } catch (error) {
+//       showMessage('Error reactivating user', 'error');
+//       console.error(error);
+//     } finally {
+//       submitBtn.innerHTML = originalText;
+//       submitBtn.disabled = false;
+//     }
+//   });
+// }
 
   // Fund User Form
   // const fundUserForm = document.getElementById('fundUserForm');
