@@ -792,7 +792,7 @@
         // Load User Cards
         async function loadUserCards() {
             try {
-                const response = await fetch('https://api.pvbonline.online/api/user/cards', {
+                const response = await fetch('https://api.pvbonline.online/api/users/cards', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
