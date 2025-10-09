@@ -790,22 +790,30 @@
         }
 
         // Load User Cards
-        async function loadUserCards() {
-            try {
-                const response = await fetch('https://api.pvbonline.online/api/users/cards', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                if (response.ok) {
-                    const cards = await response.json();
-                    displayCards(cards);
-                }
-            } catch (error) {
-                console.error('Error loading cards:', error);
+      // ✅ NEW CODE
+async function loadUserCards() {
+    try {
+        const response = await fetch('https://valley.pvbonline.online/api/users/cards', {
+            // ↑ Fixed domain: valley.pvbonline.online
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
+        });
+        
+        if (response.ok) {
+            const data = await response.json();
+            // Handle both response formats
+            const cards = data.cards || data;
+            displayCards(cards);
+        } else {
+            console.error('Failed to load cards:', response.status);
+            displayCards([]); // Show empty state
         }
+    } catch (error) {
+        console.error('Error loading cards:', error);
+        displayCards([]); // Show empty state instead of crashing
+    }
+}
 
         // Display Cards in Checkout
         function displayCards(cards) {
