@@ -203,119 +203,133 @@
     </div>
 
     <script>
-        const BACKEND_URL = 'https://valley.pvbonline.online';
-        let userCards = [];
+       const BACKEND_URL = 'https://valley.pvbonline.online';
+let userCards = [];
 
-        function showMessage(message, type) {
-            const messageDiv = document.getElementById('message');
-            messageDiv.textContent = message;
-            messageDiv.className = `message ${type}`;
-            messageDiv.style.display = 'block';
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 5000);
-        }
+function showMessage(message, type) {
+    const messageDiv = document.getElementById('message');
+    messageDiv.textContent = message;
+    messageDiv.className = `message ${type}`;
+    messageDiv.style.display = 'block';
+    setTimeout(() => {
+        messageDiv.style.display = 'none';
+    }, 5000);
+}
 
-        async function loadUserCards() {
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/users/cards`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                const result = await response.json();
-
-                if (response.ok && result.cards) {
-                    userCards = result.cards.filter(card => card.status === 'approved');
-                    
-                    const cardSelect = document.getElementById('cardSelect');
-                    
-                    if (userCards.length === 0) {
-                        cardSelect.innerHTML = '<option value="">No approved cards found</option>';
-                        return;
-                    }
-
-                    cardSelect.innerHTML = '<option value="">Select a card</option>' +
-                        userCards.map(card => 
-                            `<option value="${card._id}">
-                                ${card.cardType.toUpperCase()} - ${card.cardNumber.slice(-4)} ($${card.balance || 0})
-                            </option>`
-                        ).join('');
-                } else {
-                    showMessage('Failed to load cards', 'error');
-                }
-            } catch (error) {
-                console.error('Error loading cards:', error);
-                showMessage('Error loading cards', 'error');
+async function loadUserCards() {
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/users/cards`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
-        }
+        });
 
-        document.getElementById('cardSelect').addEventListener('change', function() {
-            const selectedCard = userCards.find(card => card._id === this.value);
-            const balanceInfo = document.getElementById('balanceInfo');
+        const result = await response.json();
+
+        if (response.ok && result.cards) {
+            userCards = result.cards.filter(card => card.status === 'approved');
             
-            if (selectedCard) {
-                document.getElementById('cardBalance').textContent = (selectedCard.balance || 0).toFixed(2);
-                balanceInfo.style.display = 'block';
-            } else {
-                balanceInfo.style.display = 'none';
-            }
-        });
-
-        document.getElementById('transferForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const cardId = document.getElementById('cardSelect').value;
-            const accountType = document.getElementById('accountType').value;
-            const amount = parseFloat(document.getElementById('amount').value);
-
-            if (!cardId || !accountType || !amount) {
-                showMessage('Please fill all fields', 'error');
+            const cardSelect = document.getElementById('cardSelect');
+            
+            if (userCards.length === 0) {
+                cardSelect.innerHTML = '<option value="">No approved cards found</option>';
                 return;
             }
 
-            const selectedCard = userCards.find(card => card._id === cardId);
-            if (amount > (selectedCard.balance || 0)) {
-                showMessage('Insufficient card balance', 'error');
-                return;
-            }
+            // ✅ FIXED: Use cardBalance instead of balance
+            cardSelect.innerHTML = '<option value="">Select a card</option>' +
+                userCards.map(card => 
+                    `<option value="${card._id}">
+                        ${card.cardType.toUpperCase()} - •••• ${card.cardNumber.slice(-4)} ($${(card.cardBalance || 0).toFixed(2)})
+                    </option>`
+                ).join('');
+        } else {
+            showMessage('Failed to load cards', 'error');
+        }
+    } catch (error) {
+        console.error('Error loading cards:', error);
+        showMessage('Error loading cards', 'error');
+    }
+}
 
-            const submitBtn = e.target.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<span class="loading"></span> Processing...';
-            submitBtn.disabled = true;
+document.getElementById('cardSelect').addEventListener('change', function() {
+    const selectedCard = userCards.find(card => card._id === this.value);
+    const balanceInfo = document.getElementById('balanceInfo');
+    
+    if (selectedCard) {
+        // ✅ FIXED: Use cardBalance instead of balance
+        document.getElementById('cardBalance').textContent = (selectedCard.cardBalance || 0).toFixed(2);
+        balanceInfo.style.display = 'block';
+    } else {
+        balanceInfo.style.display = 'none';
+    }
+});
 
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/users/card-to-account`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ cardId, accountType, amount })
-                });
+document.getElementById('transferForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
 
-                const result = await response.json();
+    const cardId = document.getElementById('cardSelect').value;
+    const accountType = document.getElementById('accountType').value;
+    const amount = parseFloat(document.getElementById('amount').value);
 
-                if (response.ok) {
-                    showMessage('✅ Transfer successful!', 'success');
-                    this.reset();
-                    loadUserCards();
-                    document.getElementById('balanceInfo').style.display = 'none';
-                } else {
-                    showMessage(result.message || 'Transfer failed', 'error');
-                }
-            } catch (error) {
-                console.error('Transfer error:', error);
-                showMessage('Network error. Please try again.', 'error');
-            } finally {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            }
+    if (!cardId || !accountType || !amount) {
+        showMessage('Please fill all fields', 'error');
+        return;
+    }
+
+    if (amount <= 0) {
+        showMessage('Amount must be greater than 0', 'error');
+        return;
+    }
+
+    const selectedCard = userCards.find(card => card._id === cardId);
+    
+    // ✅ FIXED: Use cardBalance instead of balance
+    if (amount > (selectedCard.cardBalance || 0)) {
+        showMessage(`Insufficient card balance. Available: $${(selectedCard.cardBalance || 0).toFixed(2)}`, 'error');
+        return;
+    }
+
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
+    submitBtn.innerHTML = '<span class="loading"></span> Processing...';
+    submitBtn.disabled = true;
+
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/users/card-to-account`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ cardId, accountType, amount })
         });
 
-        document.addEventListener('DOMContentLoaded', loadUserCards);
+        const result = await response.json();
+
+        if (response.ok) {
+            showMessage(`✅ Transfer successful! $${amount.toFixed(2)} transferred to ${accountType} account`, 'success');
+            this.reset();
+            loadUserCards(); // Reload cards to show updated balance
+            document.getElementById('balanceInfo').style.display = 'none';
+            
+            // Optional: Redirect to dashboard after 2 seconds
+            setTimeout(() => {
+                // window.location.href = 'dashboard.html';
+            }, 2000);
+        } else {
+            showMessage(result.message || 'Transfer failed', 'error');
+        }
+    } catch (error) {
+        console.error('Transfer error:', error);
+        showMessage('Network error. Please try again.', 'error');
+    } finally {
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+});
+
+document.addEventListener('DOMContentLoaded', loadUserCards);
     </script>
 </body>
 </html>
