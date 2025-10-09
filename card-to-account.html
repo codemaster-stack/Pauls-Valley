@@ -218,7 +218,7 @@
 
         async function loadUserCards() {
             try {
-                const response = await fetch(`${BACKEND_URL}/api/user/cards`, {
+                const response = await fetch(`${BACKEND_URL}/api/users/cards`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
