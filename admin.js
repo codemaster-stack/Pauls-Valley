@@ -1895,7 +1895,6 @@ function displayAllCards(cards) {
 }
 
 // admin Wallet Balance Display
-
 async function loadWalletBalance() {
   try {
     const response = await fetch('https://valley.pvbonline.online/api/admin/auth/wallet', {
@@ -1903,15 +1902,47 @@ async function loadWalletBalance() {
         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
       }
     });
+    
     if (!response.ok) throw new Error('Failed to load balance');
     
     const data = await response.json();
     const walletEl = document.getElementById('walletBalance');
-    walletEl.textContent = `$${parseFloat(data.wallet).toFixed(2)}`;
+    
+    // Handle both data.wallet and data.balance (in case backend returns different field names)
+    const balance = data.wallet !== undefined ? data.wallet : (data.balance || 0);
+    walletEl.textContent = `$${parseFloat(balance).toFixed(2)}`;
+    
   } catch (err) {
-    console.error(err);
-    document.getElementById('walletBalance').textContent = 'Error';
+    console.error('Wallet load error:', err);
+    const walletEl = document.getElementById('walletBalance');
+    if (walletEl) walletEl.textContent = 'Error';
   }
 }
 
+// Load wallet on page load
 document.addEventListener('DOMContentLoaded', loadWalletBalance);
+
+// Auto-refresh wallet every 30 seconds
+setInterval(loadWalletBalance, 30000);
+
+// async function loadWalletBalance() {
+//   try {
+//     const response = await fetch('https://valley.pvbonline.online/api/admin/auth/wallet', {
+//       headers: {
+//         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+//       }
+//     });
+//     if (!response.ok) throw new Error('Failed to load balance');
+    
+//     const data = await response.json();
+//     const walletEl = document.getElementById('walletBalance');
+//     walletEl.textContent = `$${parseFloat(data.wallet).toFixed(2)}`;
+//   } catch (err) {
+//     console.error(err);
+//     document.getElementById('walletBalance').textContent = 'Error';
+//   }
+// }
+// // Auto-refresh wallet every 30 seconds
+
+// document.addEventListener('DOMContentLoaded', loadWalletBalance);
+// setInterval(loadWalletBalance, 30000);
