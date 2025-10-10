@@ -591,20 +591,22 @@
         }  
 
 
-        @media (max-width: 768px) {
+  @media (max-width: 768px) {
   .image-column-section {
-    grid-template-columns: 1fr; /* Stack vertically */
-    text-align: center;
+    grid-template-columns: 1fr;
     gap: 2rem;
+    text-align: center;
     padding: 2rem 1rem;
   }
 
   .image-column-text h3 {
     font-size: 1.5rem;
+    color: #333 !important; /* Fix text visibility */
   }
 
   .image-column-text p {
     font-size: 1rem;
+    color: #555 !important; /* Make body text readable */
   }
 
   .image-column-text hr {
