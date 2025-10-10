@@ -418,7 +418,8 @@
             if (accountType !== 'all') params.append('accountType', accountType);
 
             try {
-                const response = await fetch(`${BACKEND_URL}/api/users/transactions?${params}`, {
+                const response = await fetch(`${BACKEND_URL}/api/users/transactions/summary?${params}`, {
+
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
