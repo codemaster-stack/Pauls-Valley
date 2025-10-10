@@ -1705,3 +1705,23 @@
   0% { transform: rotate(0deg);}
   100% { transform: rotate(360deg);}
 }
+
+/* 🔧 Ensure heading text is visible on all devices */
+.image-column-text h3 {
+  color: #222 !important;
+  position: relative;
+  z-index: 10;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.4); /* helps if background is dark */
+}
+
+/* Optional: if something is covering the text */
+.image-column-text {
+  position: relative;
+  z-index: 5;
+}
+
+/* Just to be sure background elements stay behind */
+.image-column-section .placeholder-img {
+  z-index: 1;
+  position: relative;
+}
