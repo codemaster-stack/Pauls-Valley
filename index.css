@@ -590,6 +590,29 @@
             font-weight: 600;
         }  
 
+
+        @media (max-width: 768px) {
+  .image-column-section {
+    grid-template-columns: 1fr; /* Stack vertically */
+    text-align: center;
+    gap: 2rem;
+    padding: 2rem 1rem;
+  }
+
+  .image-column-text h3 {
+    font-size: 1.5rem;
+  }
+
+  .image-column-text p {
+    font-size: 1rem;
+  }
+
+  .image-column-text hr {
+    margin: 0.5rem auto 1.5rem;
+  }
+}
+
+
 .button {
   display: inline-block;
   padding: 0.75rem 1.5rem;
