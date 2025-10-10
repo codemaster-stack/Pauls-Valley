@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Loan Applications | Valley Bank Admin</title>
+  <link rel="stylesheet" href="admin.css">
+  <script src="https://kit.fontawesome.com/a2e0e6f6d4.js" crossorigin="anonymous"></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background: #f8f9fa;
+    }
+
+    h1 {
+      color: #007bff;
+      margin-bottom: 1rem;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    th, td {
+      padding: 1rem;
+      border-bottom: 1px solid #eee;
+      text-align: left;
+    }
+
+    th {
+      background: #007bff;
+      color: white;
+    }
+
+    tr:hover {
+      background: #f1f9ff;
+    }
+
+    .btn {
+      padding: 6px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      color: #fff;
+      font-size: 0.9rem;
+    }
+
+    .btn-approve {
+      background: #28a745;
+    }
+
+    .btn-reject {
+      background: #dc3545;
+    }
+
+    .status {
+      font-weight: bold;
+      text-transform: capitalize;
+    }
+
+    .status.pending { color: #ffc107; }
+    .status.approved { color: #28a745; }
+    .status.rejected { color: #dc3545; }
+
+    #messageModal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-content {
+      background: #fff;
+      padding: 1.5rem;
+      border-radius: 10px;
+      width: 90%;
+      max-width: 400px;
+    }
+
+    .modal-content textarea {
+      width: 100%;
+      height: 100px;
+      margin-top: 10px;
+      padding: 10px;
+    }
+
+    .modal-buttons {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 10px;
+    }
+
+    .modal-buttons button {
+      margin-left: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1><i class="fas fa-hand-holding-usd"></i> Loan Applications</h1>
+  <table id="loanTable">
+    <thead>
+      <tr>
+        <th>Applicant</th>
+        <th>Email</th>
+        <th>Type</th>
+        <th>Amount</th>
+        <th>Status</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td colspan="6" style="text-align:center;">Loading applications...</td></tr>
+    </tbody>
+  </table>
+
+  <!-- Message Modal -->
+  <div id="messageModal">
+    <div class="modal-content">
+      <h3 id="modalTitle"></h3>
+      <textarea id="adminMessage" placeholder="Enter message for applicant..."></textarea>
+      <div class="modal-buttons">
+        <button class="btn btn-reject" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-approve" onclick="submitDecision()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="loan-applications.js"></script>
+
+
+
+<script>
+ const token = localStorage.getItem("token"); // admin token
+const apiBase = "https://valley.pvbonline.online/api/admin/auth"; // adjust if different
+
+let selectedLoanId = null;
+let selectedAction = null;
+
+async function fetchLoans() {
+  const res = await fetch(`${apiBase}/loans`, {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+
+  const data = await res.json();
+  const tbody = document.querySelector("#loanTable tbody");
+
+  if (!data.success || !data.loans || data.loans.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No loan applications found</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = data.loans.map(l => `
+    <tr>
+      <td>${l.applicantName}</td>
+      <td>${l.applicantEmail}</td>
+      <td>${l.loanType}</td>
+      <td>$${l.loanAmount.toLocaleString()}</td>
+      <td class="status ${l.status}">${l.status}</td>
+      <td>
+        ${l.status === "pending" ? `
+          <button class="btn btn-approve" onclick="openModal('${l._id}', 'approve')">Approve</button>
+          <button class="btn btn-reject" onclick="openModal('${l._id}', 'reject')">Reject</button>
+        ` : '-'}
+      </td>
+    </tr>
+  `).join("");
+}
+
+function openModal(loanId, action) {
+  selectedLoanId = loanId;
+  selectedAction = action;
+  document.getElementById("modalTitle").textContent =
+    action === "approve" ? "Approve Loan" : "Reject Loan";
+  document.getElementById("adminMessage").value = "";
+  document.getElementById("messageModal").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("messageModal").style.display = "none";
+}
+
+async function submitDecision() {
+  const adminMessage = document.getElementById("adminMessage").value.trim();
+
+  try {
+    const res = await fetch(`${apiBase}/review/${selectedLoanId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        action: selectedAction,
+        adminMessage
+      })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert(`Loan ${selectedAction}d successfully!`);
+      closeModal();
+      fetchLoans();
+    } else {
+      alert(data.message || "Error submitting decision.");
+    }
+  } catch (error) {
+    console.error("Error:", error);
+    alert("Server error while sending decision.");
+  }
+}
+
+document.addEventListener("DOMContentLoaded", fetchLoans);
+
+
+    </script>
+
+    </body>
+</html>
