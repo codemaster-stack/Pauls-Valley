@@ -479,44 +479,47 @@
         }
 
         async function downloadStatement() {
-            const startDate = document.getElementById('startDate').value;
-            const endDate = document.getElementById('endDate').value;
+    const startDate = document.getElementById('startDate').value;
+    const endDate = document.getElementById('endDate').value;
 
-            const params = new URLSearchParams();
-            if (startDate) params.append('startDate', startDate);
-            if (endDate) params.append('endDate', endDate);
-            params.append('format', 'json');
+    const params = new URLSearchParams();
+    if (startDate) params.append('startDate', startDate);
+    if (endDate) params.append('endDate', endDate);
+    params.append('format', 'pdf'); // ✅ Request PDF version
 
-            try {
-                const response = await fetch(`${BACKEND_URL}/api/users/download-statement?${params}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                const statement = await response.json();
-
-                if (response.ok) {
-                    // Create download
-                    const dataStr = JSON.stringify(statement, null, 2);
-                    const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-                    
-                    const exportFileDefaultName = `statement-${Date.now()}.json`;
-                    
-                    const linkElement = document.createElement('a');
-                    linkElement.setAttribute('href', dataUri);
-                    linkElement.setAttribute('download', exportFileDefaultName);
-                    linkElement.click();
-
-                    alert('✅ Statement downloaded successfully!');
-                } else {
-                    alert('❌ Failed to download statement');
-                }
-            } catch (error) {
-                console.error('Download error:', error);
-                alert('❌ Error downloading statement');
+    try {
+        const response = await fetch(`${BACKEND_URL}/api/users/download-statement?${params}`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
             }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to download statement');
         }
+
+        // ✅ Read the PDF data as a blob
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+
+        // ✅ Create and trigger a download
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `statement-${Date.now()}.pdf`;
+        document.body.appendChild(a);
+        a.click();
+
+        // ✅ Clean up
+        a.remove();
+        window.URL.revokeObjectURL(url);
+
+        alert('✅ Statement downloaded successfully!');
+    } catch (error) {
+        console.error('Download error:', error);
+        alert('❌ Error downloading statement');
+    }
+}
+
 
         // Set default dates (last 30 days)
         const today = new Date();
