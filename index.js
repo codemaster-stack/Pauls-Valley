@@ -147,7 +147,7 @@ if (forgotForm) {
     const button = forgotForm.querySelector("button[type='submit']");
     setButtonLoading(button, true);
 
-    const email = $("#forgot").value;
+    const email = $("#forgotEmail").value; // <-- fixed
     try {
       const res = await fetch(`${API_URL}/forgot`, {
         method: "POST",
@@ -157,6 +157,7 @@ if (forgotForm) {
       const result = await res.json();
       if (res.ok) {
         alert(result.message || "Reset link sent. Check your email.");
+        forgotForm.reset();
       } else {
         alert(result.message || "Failed to send reset link.");
       }
