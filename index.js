@@ -170,68 +170,151 @@ if (forgotForm) {
 }
 
 // ----- RESET PASSWORD -----
-const resetForm = $("#resetPasswordForm");
-// const resetModal = $("#resetPasswordModal");
-// const loginModal = $("#loginModal");
-// const signupModal = $("#signupModal");
-// const forgotModal = $("#forgotModal");
+// const resetForm = $("#resetPasswordForm");
+// // const resetModal = $("#resetPasswordModal");
+// // const loginModal = $("#loginModal");
+// // const signupModal = $("#signupModal");
+// // const forgotModal = $("#forgotModal");
 
-if (resetForm) {
-  document.addEventListener("DOMContentLoaded", () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const token = urlParams.get("resetToken");
+// if (resetForm) {
+//   document.addEventListener("DOMContentLoaded", () => {
+//     const urlParams = new URLSearchParams(window.location.search);
+//     const token = urlParams.get("resetToken");
 
-    if (token) {
-      // Open reset modal automatically
-      closeModal(loginModal);
-      closeModal(signupModal);
-      closeModal(forgotModal);
-      openModal(resetModal);
+//     if (token) {
+//       // Open reset modal automatically
+//       closeModal(loginModal);
+//       closeModal(signupModal);
+//       closeModal(forgotModal);
+//       openModal(resetModal);
 
-      // Populate hidden input
-      const resetTokenInput = $("#resetToken");
-      if (resetTokenInput) resetTokenInput.value = token;
-    }
+//       // Populate hidden input
+//       const resetTokenInput = $("#resetToken");
+//       if (resetTokenInput) resetTokenInput.value = token;
+//     }
 
+//     resetForm.addEventListener("submit", async (e) => {
+//       e.preventDefault();
+
+//       const password = $("#newPassword").value;
+//       const confirmPassword = $("#confirmNewPassword").value;
+
+//       if (password !== confirmPassword) {
+//         alert("Passwords do not match!");
+//         return;
+//       }
+
+//       const button = resetForm.querySelector("button[type='submit']");
+//       setButtonLoading(button, true);
+
+//       try {
+//         const res = await fetch(`${API_URL}/reset`, {
+//           method: "POST",
+//           headers: { "Content-Type": "application/json" },
+//           body: JSON.stringify({ token, password }),
+//         });
+
+//         const result = await res.json();
+//         if (res.ok) {
+//           alert(result.message || "Password reset successful!");
+//           setTimeout(() => {
+//             closeModal(resetModal);
+//             openModal(loginModal);
+//           }, 1500);
+//         } else {
+//           alert(result.message || "Reset failed.");
+//         }
+//       } catch (err) {
+//         alert("Reset failed. Please try again.");
+//       } finally {
+//         setButtonLoading(button, false);
+//       }
+//     });
+//   });
+// }
+document.addEventListener("DOMContentLoaded", () => {
+  const resetModal = document.getElementById("resetPasswordModal");
+  const resetForm = document.getElementById("resetPasswordForm");
+  const resetTokenInput = document.getElementById("resetToken");
+
+  // 1️⃣ Check URL for resetToken
+  const urlParams = new URLSearchParams(window.location.search);
+  const resetToken = urlParams.get("resetToken");
+
+  if (resetToken && resetModal && resetForm && resetTokenInput) {
+    // Open modal and populate hidden input
+    resetModal.style.display = "block";
+    resetTokenInput.value = resetToken;
+
+    // Optionally remove token from URL for cleanliness
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+
+  // 2️⃣ Handle form submission
+  if (resetForm) {
     resetForm.addEventListener("submit", async (e) => {
       e.preventDefault();
+      const button = resetForm.querySelector("button[type='submit']");
+      button.disabled = true;
+      button.textContent = "Processing...";
 
-      const password = $("#newPassword").value;
-      const confirmPassword = $("#confirmNewPassword").value;
+      const newPassword = document.getElementById("newPassword").value;
+      const confirmPassword = document.getElementById("confirmNewPassword").value;
+      const token = resetTokenInput.value;
 
-      if (password !== confirmPassword) {
-        alert("Passwords do not match!");
+      if (!token) {
+        alert("Invalid or expired reset link. Please request a new password reset.");
+        button.disabled = false;
+        button.textContent = "Reset Password";
         return;
       }
 
-      const button = resetForm.querySelector("button[type='submit']");
-      setButtonLoading(button, true);
+      if (newPassword !== confirmPassword) {
+        alert("Passwords do not match.");
+        button.disabled = false;
+        button.textContent = "Reset Password";
+        return;
+      }
 
       try {
         const res = await fetch(`${API_URL}/reset`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ token, password }),
+          body: JSON.stringify({ token, password: newPassword }),
         });
 
-        const result = await res.json();
+        const data = await res.json();
+
         if (res.ok) {
-          alert(result.message || "Password reset successful!");
-          setTimeout(() => {
-            closeModal(resetModal);
-            openModal(loginModal);
-          }, 1500);
+          alert(data.message || "Password reset successful! You can now log in.");
+          resetForm.reset();
+          resetModal.style.display = "none";
         } else {
-          alert(result.message || "Reset failed.");
+          alert(data.message || "Failed to reset password.");
         }
       } catch (err) {
-        alert("Reset failed. Please try again.");
+        console.error("Reset password error:", err);
+        alert("Something went wrong. Please try again.");
       } finally {
-        setButtonLoading(button, false);
+        button.disabled = false;
+        button.textContent = "Reset Password";
       }
     });
+  }
+
+  // 3️⃣ Close modal when clicking close button
+  const closeBtn = document.getElementById("closeReset");
+  if (closeBtn) {
+    closeBtn.addEventListener("click", () => {
+      resetModal.style.display = "none";
+    });
+  }
+
+  // Optional: close modal when clicking outside
+  window.addEventListener("click", (e) => {
+    if (e.target === resetModal) resetModal.style.display = "none";
   });
-}
+});
 
 
 
