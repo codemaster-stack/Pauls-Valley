@@ -746,6 +746,7 @@
 
     <script>
        // FIXED SCRIPT - Matches your backend routes
+// FIXED SCRIPT - Matches your backend routes
 const API_URL = 'https://valley.pvbonline.online/api/admin/auth';
 
 let currentPage = 1;
@@ -785,33 +786,47 @@ async function loadTransactions() {
     }
 }
 
-// Load users - YOU NEED TO ADD THIS ROUTE TO YOUR BACKEND
-// Or modify to use existing user routes
+// Load users with proper authentication
 async function loadUsers() {
     try {
-        // Option 1: If you have a users route
+        // Get admin token from localStorage or sessionStorage
+        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        
+        if (!token) {
+            console.warn('No authentication token found');
+            return;
+        }
+
         const response = await fetch(`${API_URL}/users`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
-                // 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+                'Authorization': `Bearer ${token}`
             }
         });
         
         if (!response.ok) {
-            console.warn('Users endpoint not available');
+            if (response.status === 401) {
+                console.warn('Authentication required for users endpoint');
+            } else {
+                console.warn('Users endpoint not available');
+            }
             return;
         }
         
-        const users = await response.json();
+        const data = await response.json();
+        const users = data.users || data; // Handle different response formats
+        
         const userSelect = document.getElementById('userId');
-        userSelect.innerHTML = '<option value="">Select User</option>';
-        users.forEach(user => {
-            const option = document.createElement('option');
-            option.value = user.id || user._id;
-            option.textContent = `${user.name || user.username} (${user.email})`;
-            userSelect.appendChild(option);
-        });
+        if (userSelect) {
+            userSelect.innerHTML = '<option value="">Select User</option>';
+            users.forEach(user => {
+                const option = document.createElement('option');
+                option.value = user.id || user._id;
+                option.textContent = `${user.name || user.username} (${user.email})`;
+                userSelect.appendChild(option);
+            });
+        }
     } catch (error) {
         console.error('Error loading users:', error);
         // Don't show error - users dropdown will just be empty
