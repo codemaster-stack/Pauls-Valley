@@ -746,7 +746,7 @@
 
     <script>
        // FIXED SCRIPT - Matches your backend routes
-// FIXED SCRIPT - Matches your backend routes
+// COMPLETE FIXED SCRIPT - All auth headers included
 const API_URL = 'https://valley.pvbonline.online/api/admin/auth';
 
 let currentPage = 1;
@@ -754,43 +754,62 @@ let totalPages = 1;
 let allTransactions = [];
 let filteredTransactions = [];
 
+// Helper function to get auth token
+function getAuthToken() {
+    return localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken') || localStorage.getItem('token') || sessionStorage.getItem('token');
+}
+
+// Helper function to get auth headers
+function getAuthHeaders() {
+    const token = getAuthToken();
+    return {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` })
+    };
+}
+
 document.addEventListener('DOMContentLoaded', () => {
+    // Check if user is authenticated
+    if (!getAuthToken()) {
+        console.warn('No authentication token found. Please log in.');
+        showNotification('Please log in to access this page', 'error');
+        return;
+    }
+    
     loadTransactions();
     loadUsers();
 });
 
-// Load all transactions (matches: GET /transactions)
+// Load all transactions
 async function loadTransactions() {
     try {
         const response = await fetch(`${API_URL}/transactions`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                // Add authorization header if needed
-                // 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            }
+            headers: getAuthHeaders()
         });
         
         if (!response.ok) {
+            if (response.status === 401) {
+                throw new Error('Unauthorized. Please log in again.');
+            }
             throw new Error('Failed to load transactions');
         }
         
         const data = await response.json();
-        allTransactions = data.transactions || data; // Handle different response formats
+        allTransactions = data.transactions || data;
         filteredTransactions = [...allTransactions];
         updateStats();
         renderTransactions();
     } catch (error) {
         console.error('Error loading transactions:', error);
-        showNotification('Error loading transactions', 'error');
+        showNotification(error.message || 'Error loading transactions', 'error');
     }
 }
 
-// Load users with proper authentication
+// Load users
 async function loadUsers() {
     try {
-        // Get admin token from localStorage or sessionStorage
-        const token = localStorage.getItem('adminToken') || sessionStorage.getItem('adminToken');
+        const token = getAuthToken();
         
         if (!token) {
             console.warn('No authentication token found');
@@ -799,23 +818,16 @@ async function loadUsers() {
 
         const response = await fetch(`${API_URL}/users`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            }
+            headers: getAuthHeaders()
         });
         
         if (!response.ok) {
-            if (response.status === 401) {
-                console.warn('Authentication required for users endpoint');
-            } else {
-                console.warn('Users endpoint not available');
-            }
+            console.warn('Users endpoint not available');
             return;
         }
         
         const data = await response.json();
-        const users = data.users || data; // Handle different response formats
+        const users = data.users || data;
         
         const userSelect = document.getElementById('userId');
         if (userSelect) {
@@ -829,11 +841,10 @@ async function loadUsers() {
         }
     } catch (error) {
         console.error('Error loading users:', error);
-        // Don't show error - users dropdown will just be empty
     }
 }
 
-// Update statistics (can use GET /transactions/stats if you prefer)
+// Update statistics
 function updateStats() {
     const total = filteredTransactions.length;
     const completed = filteredTransactions.filter(t => t.status === 'completed').length;
@@ -975,15 +986,12 @@ function closeModal() {
     document.getElementById('transactionModal').classList.remove('active');
 }
 
-// Edit transaction (matches: GET /transactions/:id)
+// Edit transaction - ✅ FIXED WITH AUTH
 async function editTransaction(id) {
     try {
         const response = await fetch(`${API_URL}/transactions/${id}`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-                // 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            }
+            headers: getAuthHeaders()  // ✅ AUTH INCLUDED
         });
         
         if (!response.ok) {
@@ -991,7 +999,7 @@ async function editTransaction(id) {
         }
         
         const txn = await response.json();
-        const transaction = txn.transaction || txn; // Handle different response formats
+        const transaction = txn.transaction || txn;
         
         document.getElementById('modalTitle').textContent = 'Edit Transaction';
         document.getElementById('transactionId').value = transaction.id || transaction._id;
@@ -1004,11 +1012,11 @@ async function editTransaction(id) {
         document.getElementById('transactionModal').classList.add('active');
     } catch (error) {
         console.error('Error loading transaction:', error);
-        showNotification('Error loading transaction', 'error');
+        showNotification(error.message || 'Error loading transaction', 'error');
     }
 }
 
-// Save transaction (matches: PUT /transactions/:id or POST /transactions)
+// Save transaction - ✅ FIXED WITH AUTH
 async function saveTransaction(event) {
     event.preventDefault();
     
@@ -1028,10 +1036,7 @@ async function saveTransaction(event) {
         
         const response = await fetch(url, {
             method: method,
-            headers: {
-                'Content-Type': 'application/json',
-                // 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            },
+            headers: getAuthHeaders(),  // ✅ AUTH INCLUDED
             body: JSON.stringify(data)
         });
         
@@ -1049,17 +1054,14 @@ async function saveTransaction(event) {
     }
 }
 
-// Delete transaction (matches: DELETE /transactions/:id)
+// Delete transaction - ✅ FIXED WITH AUTH
 async function deleteTransaction(id) {
     if (!confirm('Are you sure you want to delete this transaction?')) return;
     
     try {
         const response = await fetch(`${API_URL}/transactions/${id}`, {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-                // 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
-            }
+            headers: getAuthHeaders()  // ✅ AUTH INCLUDED
         });
         
         if (response.ok) {
