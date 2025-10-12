@@ -590,51 +590,122 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Handle PIN form submission
+  // const enterPinForm = document.getElementById("enterPinForm");
+  // if (enterPinForm) {
+  //   enterPinForm.addEventListener("submit", async (e) => {
+  //     e.preventDefault();
+
+  //     const pin = document.getElementById("transferPin").value;
+  //     const token = localStorage.getItem("token");
+
+  //     if (pin.length !== 4) {
+  //       alert("PIN must be 4 digits");
+  //       return;
+  //     }
+
+  //     try {
+  //       const submitButton = e.target.querySelector('button[type="submit"]');
+  //       submitButton.disabled = true;
+  //       submitButton.textContent = "Processing...";
+
+  //       const res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           "Authorization": `Bearer ${token}`
+  //         },
+  //         body: JSON.stringify({ ...transferData, pin })
+  //       });
+
+  //       const data = await res.json();
+
+  //       if (res.ok) {
+  //         alert(data.message);
+  //         closeModal("enterPinModal");
+  //         // Refresh balances
+  //         if (typeof loadUserDashboard === 'function') {
+  //           loadUserDashboard();
+  //         }
+  //       } else {
+  //         alert(data.message || "Transfer failed. Please try again.");
+  //         if (data.requiresPinSetup) {
+  //           closeModal("enterPinModal");
+  //           openModal("createPinModal");
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error("Transfer error:", err);
+  //       alert("Something went wrong. Please try again.");
+  //     } finally {
+  //       const submitButton = document.querySelector('#enterPinForm button[type="submit"]');
+  //       if (submitButton) {
+  //         submitButton.disabled = false;
+  //         submitButton.textContent = "Confirm Transfer";
+  //       }
+  //     }
+  //   });
+  // }
+       document.addEventListener("DOMContentLoaded", () => {
   const enterPinForm = document.getElementById("enterPinForm");
+
   if (enterPinForm) {
     enterPinForm.addEventListener("submit", async (e) => {
       e.preventDefault();
-
       const pin = document.getElementById("transferPin").value;
       const token = localStorage.getItem("token");
-
-      if (pin.length !== 4) {
-        alert("PIN must be 4 digits");
-        return;
-      }
 
       try {
         const submitButton = e.target.querySelector('button[type="submit"]');
         submitButton.disabled = true;
         submitButton.textContent = "Processing...";
 
-        const res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({ ...transferData, pin })
-        });
+        let res, data;
 
-        const data = await res.json();
+        if (window.fundCardData) {
+          // Fund Card flow
+          res = await fetch("https://valley.pvbonline.online/api/users/fund-card", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ ...window.fundCardData, pin })
+          });
+          data = await res.json();
 
-        if (res.ok) {
-          alert(data.message);
-          closeModal("enterPinModal");
-          // Refresh balances
-          if (typeof loadUserDashboard === 'function') {
-            loadUserDashboard();
-          }
-        } else {
-          alert(data.message || "Transfer failed. Please try again.");
-          if (data.requiresPinSetup) {
+          if (res.ok) {
+            alert(`✅ Card funded successfully from ${window.fundCardData.source}! New Balance: $${data.card.cardBalance}`);
             closeModal("enterPinModal");
-            openModal("createPinModal");
+            window.fundCardData = null;
+            window.location.href = "view-cards.html";
+          } else {
+            alert(data.message || "Funding failed. Please try again.");
+          }
+
+        } else if (window.transferData) {
+          // Existing transfer flow
+          res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ ...window.transferData, pin })
+          });
+          data = await res.json();
+
+          if (res.ok) {
+            alert(data.message);
+            closeModal("enterPinModal");
+            window.transferData = null;
+            if (typeof loadUserDashboard === 'function') loadUserDashboard();
+          } else {
+            alert(data.message || "Transfer failed.");
           }
         }
+
       } catch (err) {
-        console.error("Transfer error:", err);
+        console.error(err);
         alert("Something went wrong. Please try again.");
       } finally {
         const submitButton = document.querySelector('#enterPinForm button[type="submit"]');
@@ -645,6 +716,7 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
+});
 
   // Handle create PIN form submission
   const createPinForm = document.getElementById("createPinForm");
@@ -1089,85 +1161,6 @@ mobileNavItems.forEach(item => {
 
 
 // chart
-
-
-  // --- Initialize socket ---
-  // const socket = io("https://valley.pvbonline.online", {
-  //   transports: ["websocket"],
-  //   withCredentials: true
-  // });
-
-  // // Unique visitor ID for this session
-  // const visitorId = "visitor_" + Date.now();
-
-  // socket.on("connect", () => {
-  //   socket.emit("joinVisitor", visitorId);
-  //   document.getElementById("chatStatusText").innerText = "Connected";
-  //   document.querySelector(".chat-status-dot").style.background = "green";
-  // });
-
-  // socket.on("disconnect", () => {
-  //   document.getElementById("chatStatusText").innerText = "Disconnected";
-  //   document.querySelector(".chat-status-dot").style.background = "red";
-  // });
-
-  // // Receive message from admin
-  // socket.on("chatMessage", (data) => {
-  //   appendMessage(
-  //     data.sender === "admin" ? "Support" : "You",
-  //     data.text,
-  //     data.sender
-  //   );
-  // });
-
-  // // --- Open chat modal ---
-  // function openChatModal() {
-  //   document.getElementById("chatModal").style.display = "block";
-  // }
-
-  // // --- Close chat modal ---
-  // function closeChatModal() {
-  //   document.getElementById("chatModal").style.display = "none";
-  // }
-
-  // // --- Send message from visitor to admin ---
-  // function sendChatMessage() {
-  //   const input = document.getElementById("chatInput");
-  //   const msg = input.value.trim();
-  //   if (!msg) return;
-
-  //   socket.emit("visitorMessage", { visitorId, text: msg });
-  //   appendMessage("You", msg, "visitor");
-  //   input.value = "";
-  // }
-
-  // // --- Press Enter to send ---
-  // function handleChatKeyPress(e) {
-  //   if (e.key === "Enter") {
-  //     sendChatMessage();
-  //   }
-  // }
-
-  // // --- Append message to chat window ---
-  // function appendMessage(sender, text, type) {
-  //   const chatBox = document.getElementById("chatMessages");
-  //   const msgDiv = document.createElement("div");
-  //   msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
-  //   msgDiv.innerHTML = `
-  //     <div class="message-avatar">
-  //       <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
-  //     </div>
-  //     <div class="message-content">
-  //       <div class="message-header">${sender}</div>
-  //       <div class="message-text">${text}</div>
-  //       <div class="message-time">${new Date().toLocaleTimeString()}</div>
-  //     </div>
-  //   `;
-  //   chatBox.appendChild(msgDiv);
-  //   chatBox.scrollTop = chatBox.scrollHeight;
-  // }
-
-
 
   const socket = io("https://valley.pvbonline.online", {
   transports: ["websocket"],

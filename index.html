@@ -86,7 +86,7 @@
 
         <!-- Hero Section-->
          
-       <section class="mod-marketing" aria-label="Marketing Message">
+       <!-- <section class="mod-marketing" aria-label="Marketing Message">
         <div class="flexslider">
             <ul class="slides">
                 <li class="mk-slide3">
@@ -134,8 +134,40 @@
                 </button>
             </div>
         </div>
-    </section>
+    </section> -->
+                                  <!-- REPLACE your existing slider section with this -->
+<section class="mod-marketing" aria-label="Marketing Message">
+    <div class="flexslider">
+        <ul class="slides" id="marketing-slides-container">
+            <!-- Loading state -->
+            <li class="mk-slide3">
+                <div class="container">
+                    <div class="marketing-text">
+                        <h2 class="marketing-title">Loading...</h2>
+                        <p class="marketing-subtitle">Please wait while we load the content.</p>
+                    </div>
+                </div>
+            </li>
+        </ul>
 
+        <div class="mm-controls">
+            <button type="button" class="mm-direction-nav flex-prev" title="Previous">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+
+            <div class="mm-control-nav" id="slider-dots-container">
+                <!-- Dots will be added dynamically -->
+            </div>
+
+            <button type="button" class="mm-direction-nav flex-next" title="Next">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Add this script at the bottom of your index.html, just before closing </body> tag -->
+<!-- <script src="js/marketing-slider.js"></script> -->
     <!-- End Hero Section-->
 
 

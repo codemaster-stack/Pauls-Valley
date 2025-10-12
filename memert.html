@@ -585,11 +585,56 @@
                 <div class="form-group">
                     <label for="address">Delivery Address</label>
                     <input type="text" id="address" placeholder="Enter delivery address" required>
+                    <p style="margin-top: 8px; font-size: 14px;">
+                      <a href="#" id="forgotCardPinLink" style="color: #667eea; text-decoration: underline;">Forgot PIN?</a>
+                    </p>
                 </div>
                 <button type="submit" class="pay-btn" id="payBtn">Pay Now</button>
             </form>
         </div>
     </div>
+    <!-- Forgot Card PIN Modal -->
+<div class="modal" id="forgotCardPinModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Reset Card PIN</h2>
+            <button class="close-modal" onclick="closeModal('forgotCardPinModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="forgotCardPinForm">
+            <div class="form-group">
+                <label for="cardSelectForReset">Select Card</label>
+                <select id="cardSelectForReset" required>
+                    <!-- JS will populate this with user's cards -->
+                </select>
+            </div>
+            <button type="submit" class="pay-btn">Send PIN Reset Link</button>
+        </form>
+    </div>
+</div>
+
+<!-- Reset Card PIN Modal -->
+<div class="modal" id="resetCardPinModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h2>Enter New Card PIN</h2>
+            <button class="close-modal" onclick="closeModal('resetCardPinModal')"><i class="fas fa-times"></i></button>
+        </div>
+        <form id="resetCardPinForm">
+            <div class="form-group">
+                <label for="resetCardSelect">Select Card</label>
+                <select id="resetCardSelect" required>
+                    <!-- JS will populate with user's cards -->
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="newTransactionPin">New 4-digit PIN</label>
+                <input type="password" id="newTransactionPin" maxlength="4" pattern="\d{4}" placeholder="Enter new PIN" required />
+            </div>
+            <button type="submit" class="pay-btn">Reset PIN</button>
+        </form>
+    </div>
+</div>
+
 
     <script>
         // Sample Products Data
@@ -928,6 +973,54 @@ async function loadUserCards() {
     }
 });
 
+     // Open Forgot Card PIN Modal
+document.getElementById('forgotCardPinLink').addEventListener('click', function(e) {
+    e.preventDefault();
+    closeCheckout(); // close checkout modal if open
+    const cardSelect = document.getElementById('cardSelectForReset');
+
+    // Populate with user's cards
+    const cards = document.querySelectorAll('.card-select');
+    cardSelect.innerHTML = Array.from(cards).map(card => {
+        const cardNumber = card.textContent.match(/\d{4}$/)[0]; // last 4 digits
+        return `<option value="${cardNumber}">•••• •••• •••• ${cardNumber}</option>`;
+    }).join('');
+
+    document.getElementById('forgotCardPinModal').classList.add('active');
+});
+
+// Handle Forgot Card PIN Form Submission
+document.getElementById('forgotCardPinForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    const selectedCard = document.getElementById('cardSelectForReset').value;
+
+    try {
+        const res = await fetch('https://valley.pvbonline.online/api/users/card-reset-pin', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            },
+            body: JSON.stringify({ cardNumber: selectedCard })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+            alert('✅ PIN reset instructions sent to your email!');
+            closeModal('forgotCardPinModal');
+        } else {
+            alert('❌ ' + (data.message || 'Failed to send PIN reset instructions.'));
+        }
+    } catch (err) {
+        console.error(err);
+        alert('❌ Network error. Please try again.');
+    }
+});
+
+
+
         // Show Notification
         function showNotification(message) {
             const notification = document.createElement('div');
@@ -950,6 +1043,67 @@ async function loadUserCards() {
                 notification.remove();
             }, 2000);
         }
+
+
+
+
+
+        // --- RESET CARD PIN HANDLER ---
+// This runs when user clicks the email link (with ?token= & card=)
+document.addEventListener("DOMContentLoaded", async () => {
+  const params = new URLSearchParams(window.location.search);
+  const resetToken = params.get("token");
+  const cardNumber = params.get("card");
+
+  if (resetToken && cardNumber) {
+    // Auto-open the reset modal
+    const resetModal = document.getElementById("resetCardPinModal");
+    resetModal.classList.add("active");
+
+    // Pre-fill the card dropdown
+    const resetCardSelect = document.getElementById("resetCardSelect");
+    resetCardSelect.innerHTML = `<option value="${cardNumber}" selected>•••• •••• •••• ${cardNumber.slice(-4)}</option>`;
+
+    // Handle form submission
+    const resetForm = document.getElementById("resetCardPinForm");
+    resetForm.addEventListener("submit", async function (e) {
+      e.preventDefault();
+
+      const newPin = document.getElementById("newTransactionPin").value;
+
+      if (!/^\d{4}$/.test(newPin)) {
+        alert("❌ Please enter a valid 4-digit PIN.");
+        return;
+      }
+
+      try {
+        const res = await fetch("https://valley.pvbonline.online/api/users/reset-card-pin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: resetToken,
+            newPin,
+            cardNumber,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert("✅ Your card PIN has been reset successfully!");
+          closeModal("resetCardPinModal");
+          window.history.replaceState({}, document.title, window.location.pathname);
+        } else {
+          alert("❌ " + (data.message || "Failed to reset PIN. Please try again."));
+        }
+      } catch (err) {
+        console.error(err);
+        alert("❌ Network error. Please try again.");
+      }
+    });
+  }
+});
+
     </script>
 </body>
 </html>

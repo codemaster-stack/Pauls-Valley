@@ -62,61 +62,55 @@
   </div>
 
   <script>
-    async function loadCards() {
-       document.getElementById("loadingCards").style.display = "block";
-      const res = await fetch("https://valley.pvbonline.online/api/users/my-cards", {
-        headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
-      });
-      const cards = await res.json();
-       document.getElementById("loadingCards").style.display = "none";
-      const select = document.getElementById("cardSelect");
+    document.addEventListener("DOMContentLoaded", () => {
+  async function loadCards() {
+    document.getElementById("loadingCards").style.display = "block";
+    const res = await fetch("https://valley.pvbonline.online/api/users/my-cards", {
+      headers: { "Authorization": `Bearer ${localStorage.getItem("token")}` }
+    });
+    const cards = await res.json();
+    document.getElementById("loadingCards").style.display = "none";
+    const select = document.getElementById("cardSelect");
 
-      if (cards.length === 0) {
-        alert("You have no cards. Redirecting to create one...");
-        window.location.href = "atm.html";
-        return;
-      }
-
-      cards.forEach(c => {
-        const opt = document.createElement("option");
-        opt.value = c._id;
-        opt.textContent = `${c.cardType.toUpperCase()} - ${c.cardNumber.slice(-4)} ($${c.cardBalance})`;
-        select.appendChild(opt);
-      });
+    if (cards.length === 0) {
+      alert("You have no cards. Redirecting to create one...");
+      window.location.href = "atm.html";
+      return;
     }
 
-    document.getElementById("fundForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      document.getElementById("loadingSubmit").style.display = "block";
-      const cardId = document.getElementById("cardSelect").value;
-      const amount = document.getElementById("amount").value;
-      const source = document.getElementById("source").value;
-
-      try {
-        const res = await fetch("https://valley.pvbonline.online/api/users/fund-card", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${localStorage.getItem("token")}`
-          },
-          body: JSON.stringify({ cardId, amount, source })
-        });
-
-        const data = await res.json();
-        document.getElementById("loadingSubmit").style.display = "none";
-        if (res.ok) {
-          alert(`✅ Card funded successfully from ${source}! New Balance: $${data.card.cardBalance}`);
-          window.location.href = "view-cards.html";
-        } else {
-          alert("❌ Error: " + data.message);
-        }
-      } catch (err) {
-         document.getElementById("loadingSubmit").style.display = "none";
-        alert("Network error: " + err.message);
-      }
+    cards.forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c._id;
+      opt.textContent = `${c.cardType.toUpperCase()} - ${c.cardNumber.slice(-4)} ($${c.cardBalance})`;
+      select.appendChild(opt);
     });
+  }
 
-    loadCards();
+  // Single submit listener with PIN check
+  document.getElementById("fundForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const cardId = document.getElementById("cardSelect").value;
+    const amount = Number(document.getElementById("amount").value);
+    const source = document.getElementById("source").value;
+
+    if (!cardId || amount <= 0) return alert("Please fill all fields correctly.");
+
+    // Save fund card details globally
+    window.fundCardData = { cardId, amount, source };
+
+    // Check if user has a transfer PIN
+    const hasPIN = await checkPinStatus();
+    if (!hasPIN) {
+      openModal("createPinModal");
+    } else {
+      openModal("enterPinModal");
+    }
+  });
+
+  loadCards();
+});
+
   </script>
 </body>
 </html>
