@@ -745,282 +745,365 @@
     </div>
 
     <script>
-        const API_URL = 'https://valley.pvbonline.online/api';
-        let currentPage = 1;
-        let totalPages = 1;
-        let allTransactions = [];
-        let filteredTransactions = [];
+       // FIXED SCRIPT - Matches your backend routes
+const API_URL = 'https://valley.pvbonline.online/api/admin/auth';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            loadTransactions();
-            loadUsers();
+let currentPage = 1;
+let totalPages = 1;
+let allTransactions = [];
+let filteredTransactions = [];
+
+document.addEventListener('DOMContentLoaded', () => {
+    loadTransactions();
+    loadUsers();
+});
+
+// Load all transactions (matches: GET /transactions)
+async function loadTransactions() {
+    try {
+        const response = await fetch(`${API_URL}/transactions`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                // Add authorization header if needed
+                // 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            }
         });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load transactions');
+        }
+        
+        const data = await response.json();
+        allTransactions = data.transactions || data; // Handle different response formats
+        filteredTransactions = [...allTransactions];
+        updateStats();
+        renderTransactions();
+    } catch (error) {
+        console.error('Error loading transactions:', error);
+        showNotification('Error loading transactions', 'error');
+    }
+}
 
-        async function loadTransactions() {
-            try {
-                const response = await fetch(`${API_URL}/transactions`);
-                allTransactions = await response.json();
-                filteredTransactions = [...allTransactions];
-                updateStats();
-                renderTransactions();
-            } catch (error) {
-                console.error('Error loading transactions:', error);
-                showNotification('Error loading transactions', 'error');
+// Load users - YOU NEED TO ADD THIS ROUTE TO YOUR BACKEND
+// Or modify to use existing user routes
+async function loadUsers() {
+    try {
+        // Option 1: If you have a users route
+        const response = await fetch(`${API_URL}/users`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                // 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
             }
+        });
+        
+        if (!response.ok) {
+            console.warn('Users endpoint not available');
+            return;
         }
+        
+        const users = await response.json();
+        const userSelect = document.getElementById('userId');
+        userSelect.innerHTML = '<option value="">Select User</option>';
+        users.forEach(user => {
+            const option = document.createElement('option');
+            option.value = user.id || user._id;
+            option.textContent = `${user.name || user.username} (${user.email})`;
+            userSelect.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Error loading users:', error);
+        // Don't show error - users dropdown will just be empty
+    }
+}
 
-        async function loadUsers() {
-            try {
-                const response = await fetch(`${API_URL}/users`);
-                const users = await response.json();
-                const userSelect = document.getElementById('userId');
-                userSelect.innerHTML = '<option value="">Select User</option>';
-                users.forEach(user => {
-                    const option = document.createElement('option');
-                    option.value = user.id;
-                    option.textContent = `${user.name} (${user.email})`;
-                    userSelect.appendChild(option);
-                });
-            } catch (error) {
-                console.error('Error loading users:', error);
+// Update statistics (can use GET /transactions/stats if you prefer)
+function updateStats() {
+    const total = filteredTransactions.length;
+    const completed = filteredTransactions.filter(t => t.status === 'completed').length;
+    const pending = filteredTransactions.filter(t => t.status === 'pending').length;
+    const totalAmount = filteredTransactions
+        .filter(t => t.status === 'completed')
+        .reduce((sum, t) => sum + parseFloat(t.amount || 0), 0);
+    
+    document.getElementById('totalTransactions').textContent = total;
+    document.getElementById('completedTransactions').textContent = completed;
+    document.getElementById('pendingTransactions').textContent = pending;
+    document.getElementById('totalAmount').textContent = `$${totalAmount.toFixed(2)}`;
+}
+
+function renderTransactions() {
+    const tbody = document.getElementById('transactionsBody');
+    if (filteredTransactions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No transactions found</td></tr>';
+        return;
+    }
+    
+    const itemsPerPage = 20;
+    totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    const pageTransactions = filteredTransactions.slice(start, end);
+    
+    tbody.innerHTML = pageTransactions.map(txn => `
+        <tr>
+            <td>#${txn.id || txn._id}</td>
+            <td>
+                <div class="user-info">
+                    <strong>${txn.userName || txn.user?.name || 'N/A'}</strong>
+                    <small>${txn.userEmail || txn.user?.email || 'N/A'}</small>
+                </div>
+            </td>
+            <td><span class="badge badge-${txn.type}">${txn.type}</span></td>
+            <td class="amount ${txn.type === 'withdrawal' ? 'negative' : 'positive'}">
+                ${txn.type === 'withdrawal' ? '-' : '+'}$${parseFloat(txn.amount).toFixed(2)}
+            </td>
+            <td><span class="status-badge status-${txn.status}">${txn.status}</span></td>
+            <td>${formatDate(txn.createdAt)}</td>
+            <td class="description">${txn.description || 'N/A'}</td>
+            <td>
+                <div class="action-buttons">
+                    <button class="btn-icon btn-edit" onclick="editTransaction('${txn.id || txn._id}')" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn-icon btn-delete" onclick="deleteTransaction('${txn.id || txn._id}')" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    `).join('');
+    
+    renderPagination();
+}
+
+function renderPagination() {
+    const pagination = document.getElementById('pagination');
+    if (totalPages <= 1) {
+        pagination.innerHTML = '';
+        return;
+    }
+    
+    let html = `<button onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>Previous</button>`;
+    
+    for (let i = 1; i <= totalPages; i++) {
+        if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+            html += `<button onclick="changePage(${i})" class="${i === currentPage ? 'active' : ''}">${i}</button>`;
+        } else if (i === currentPage - 3 || i === currentPage + 3) {
+            html += '<span>...</span>';
+        }
+    }
+    
+    html += `<button onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>Next</button>`;
+    pagination.innerHTML = html;
+}
+
+function changePage(page) {
+    if (page < 1 || page > totalPages) return;
+    currentPage = page;
+    renderTransactions();
+}
+
+function applyFilters() {
+    const userFilter = document.getElementById('filterUser').value.toLowerCase();
+    const typeFilter = document.getElementById('filterType').value;
+    const statusFilter = document.getElementById('filterStatus').value;
+    const dateFrom = document.getElementById('filterDateFrom').value;
+    const dateTo = document.getElementById('filterDateTo').value;
+    
+    filteredTransactions = allTransactions.filter(txn => {
+        const matchUser = !userFilter || 
+            (txn.userName && txn.userName.toLowerCase().includes(userFilter)) || 
+            (txn.userEmail && txn.userEmail.toLowerCase().includes(userFilter)) ||
+            (txn.user?.name && txn.user.name.toLowerCase().includes(userFilter)) ||
+            (txn.user?.email && txn.user.email.toLowerCase().includes(userFilter));
+        
+        const matchType = !typeFilter || txn.type === typeFilter;
+        const matchStatus = !statusFilter || txn.status === statusFilter;
+        
+        let matchDate = true;
+        if (dateFrom || dateTo) {
+            const txnDate = new Date(txn.createdAt).toISOString().split('T')[0];
+            if (dateFrom && txnDate < dateFrom) matchDate = false;
+            if (dateTo && txnDate > dateTo) matchDate = false;
+        }
+        
+        return matchUser && matchType && matchStatus && matchDate;
+    });
+    
+    currentPage = 1;
+    updateStats();
+    renderTransactions();
+}
+
+function clearFilters() {
+    document.getElementById('filterUser').value = '';
+    document.getElementById('filterType').value = '';
+    document.getElementById('filterStatus').value = '';
+    document.getElementById('filterDateFrom').value = '';
+    document.getElementById('filterDateTo').value = '';
+    filteredTransactions = [...allTransactions];
+    currentPage = 1;
+    updateStats();
+    renderTransactions();
+}
+
+function openAddModal() {
+    document.getElementById('modalTitle').textContent = 'Add Transaction';
+    document.getElementById('transactionForm').reset();
+    document.getElementById('transactionId').value = '';
+    document.getElementById('transactionModal').classList.add('active');
+}
+
+function closeModal() {
+    document.getElementById('transactionModal').classList.remove('active');
+}
+
+// Edit transaction (matches: GET /transactions/:id)
+async function editTransaction(id) {
+    try {
+        const response = await fetch(`${API_URL}/transactions/${id}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+                // 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
             }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Failed to load transaction');
         }
+        
+        const txn = await response.json();
+        const transaction = txn.transaction || txn; // Handle different response formats
+        
+        document.getElementById('modalTitle').textContent = 'Edit Transaction';
+        document.getElementById('transactionId').value = transaction.id || transaction._id;
+        document.getElementById('userId').value = transaction.userId || transaction.user?._id;
+        document.getElementById('transactionType').value = transaction.type;
+        document.getElementById('amount').value = transaction.amount;
+        document.getElementById('status').value = transaction.status;
+        document.getElementById('description').value = transaction.description || '';
+        document.getElementById('reference').value = transaction.reference || '';
+        document.getElementById('transactionModal').classList.add('active');
+    } catch (error) {
+        console.error('Error loading transaction:', error);
+        showNotification('Error loading transaction', 'error');
+    }
+}
 
-        function updateStats() {
-            const total = filteredTransactions.length;
-            const completed = filteredTransactions.filter(t => t.status === 'completed').length;
-            const pending = filteredTransactions.filter(t => t.status === 'pending').length;
-            const totalAmount = filteredTransactions.filter(t => t.status === 'completed').reduce((sum, t) => sum + parseFloat(t.amount), 0);
-            document.getElementById('totalTransactions').textContent = total;
-            document.getElementById('completedTransactions').textContent = completed;
-            document.getElementById('pendingTransactions').textContent = pending;
-            document.getElementById('totalAmount').textContent = `$${totalAmount.toFixed(2)}`;
+// Save transaction (matches: PUT /transactions/:id or POST /transactions)
+async function saveTransaction(event) {
+    event.preventDefault();
+    
+    const id = document.getElementById('transactionId').value;
+    const data = {
+        userId: document.getElementById('userId').value,
+        type: document.getElementById('transactionType').value,
+        amount: document.getElementById('amount').value,
+        status: document.getElementById('status').value,
+        description: document.getElementById('description').value,
+        reference: document.getElementById('reference').value
+    };
+    
+    try {
+        const url = id ? `${API_URL}/transactions/${id}` : `${API_URL}/transactions`;
+        const method = id ? 'PUT' : 'POST';
+        
+        const response = await fetch(url, {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json',
+                // 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
+            },
+            body: JSON.stringify(data)
+        });
+        
+        if (response.ok) {
+            closeModal();
+            loadTransactions();
+            showNotification('Transaction saved successfully!', 'success');
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to save transaction');
         }
+    } catch (error) {
+        console.error('Error saving transaction:', error);
+        showNotification(error.message || 'Error saving transaction', 'error');
+    }
+}
 
-        function renderTransactions() {
-            const tbody = document.getElementById('transactionsBody');
-            if (filteredTransactions.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No transactions found</td></tr>';
-                return;
+// Delete transaction (matches: DELETE /transactions/:id)
+async function deleteTransaction(id) {
+    if (!confirm('Are you sure you want to delete this transaction?')) return;
+    
+    try {
+        const response = await fetch(`${API_URL}/transactions/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+                // 'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
             }
-            const itemsPerPage = 20;
-            totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageTransactions = filteredTransactions.slice(start, end);
-            tbody.innerHTML = pageTransactions.map(txn => `
-                <tr>
-                    <td>#${txn.id}</td>
-                    <td>
-                        <div class="user-info">
-                            <strong>${txn.userName || 'N/A'}</strong>
-                            <small>${txn.userEmail || 'N/A'}</small>
-                        </div>
-                    </td>
-                    <td><span class="badge badge-${txn.type}">${txn.type}</span></td>
-                    <td class="amount ${txn.type === 'withdrawal' ? 'negative' : 'positive'}">
-                        ${txn.type === 'withdrawal' ? '-' : '+'}$${parseFloat(txn.amount).toFixed(2)}
-                    </td>
-                    <td><span class="status-badge status-${txn.status}">${txn.status}</span></td>
-                    <td>${formatDate(txn.createdAt)}</td>
-                    <td class="description">${txn.description || 'N/A'}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn-icon btn-edit" onclick="editTransaction(${txn.id})" title="Edit">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button class="btn-icon btn-delete" onclick="deleteTransaction(${txn.id})" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
-                    </td>
-                </tr>
-            `).join('');
-            renderPagination();
+        });
+        
+        if (response.ok) {
+            loadTransactions();
+            showNotification('Transaction deleted successfully!', 'success');
+        } else {
+            const errorData = await response.json();
+            throw new Error(errorData.message || 'Failed to delete transaction');
         }
+    } catch (error) {
+        console.error('Error deleting transaction:', error);
+        showNotification(error.message || 'Error deleting transaction', 'error');
+    }
+}
 
-        function renderPagination() {
-            const pagination = document.getElementById('pagination');
-            if (totalPages <= 1) {
-                pagination.innerHTML = '';
-                return;
-            }
-            let html = '<button onclick="changePage(' + (currentPage - 1) + ')" ' + (currentPage === 1 ? 'disabled' : '') + '>Previous</button>';
-            for (let i = 1; i <= totalPages; i++) {
-                if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
-                    html += `<button onclick="changePage(${i})" class="${i === currentPage ? 'active' : ''}">${i}</button>`;
-                } else if (i === currentPage - 3 || i === currentPage + 3) {
-                    html += '<span>...</span>';
-                }
-            }
-            html += '<button onclick="changePage(' + (currentPage + 1) + ')" ' + (currentPage === totalPages ? 'disabled' : '') + '>Next</button>';
-            pagination.innerHTML = html;
-        }
+function exportTransactions() {
+    const csv = [
+        ['ID', 'User', 'Email', 'Type', 'Amount', 'Status', 'Date', 'Description', 'Reference'],
+        ...filteredTransactions.map(txn => [
+            txn.id || txn._id,
+            txn.userName || txn.user?.name || 'N/A',
+            txn.userEmail || txn.user?.email || 'N/A',
+            txn.type,
+            txn.amount,
+            txn.status,
+            formatDate(txn.createdAt),
+            txn.description || '',
+            txn.reference || ''
+        ])
+    ].map(row => row.join(',')).join('\n');
+    
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+}
 
-        function changePage(page) {
-            if (page < 1 || page > totalPages) return;
-            currentPage = page;
-            renderTransactions();
-        }
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
+}
 
-        function applyFilters() {
-            const userFilter = document.getElementById('filterUser').value.toLowerCase();
-            const typeFilter = document.getElementById('filterType').value;
-            const statusFilter = document.getElementById('filterStatus').value;
-            const dateFrom = document.getElementById('filterDateFrom').value;
-            const dateTo = document.getElementById('filterDateTo').value;
-            filteredTransactions = allTransactions.filter(txn => {
-                const matchUser = !userFilter || (txn.userName && txn.userName.toLowerCase().includes(userFilter)) || (txn.userEmail && txn.userEmail.toLowerCase().includes(userFilter));
-                const matchType = !typeFilter || txn.type === typeFilter;
-                const matchStatus = !statusFilter || txn.status === statusFilter;
-                let matchDate = true;
-                if (dateFrom || dateTo) {
-                    const txnDate = new Date(txn.createdAt).toISOString().split('T')[0];
-                    if (dateFrom && txnDate < dateFrom) matchDate = false;
-                    if (dateTo && txnDate > dateTo) matchDate = false;
-                }
-                return matchUser && matchType && matchStatus && matchDate;
-            });
-            currentPage = 1;
-            updateStats();
-            renderTransactions();
-        }
-
-        function clearFilters() {
-            document.getElementById('filterUser').value = '';
-            document.getElementById('filterType').value = '';
-            document.getElementById('filterStatus').value = '';
-            document.getElementById('filterDateFrom').value = '';
-            document.getElementById('filterDateTo').value = '';
-            filteredTransactions = [...allTransactions];
-            currentPage = 1;
-            updateStats();
-            renderTransactions();
-        }
-
-        function openAddModal() {
-            document.getElementById('modalTitle').textContent = 'Add Transaction';
-            document.getElementById('transactionForm').reset();
-            document.getElementById('transactionId').value = '';
-            document.getElementById('transactionModal').classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('transactionModal').classList.remove('active');
-        }
-
-        async function editTransaction(id) {
-            try {
-                const response = await fetch(`${API_URL}/transactions/${id}`);
-                const txn = await response.json();
-                document.getElementById('modalTitle').textContent = 'Edit Transaction';
-                document.getElementById('transactionId').value = txn.id;
-                document.getElementById('userId').value = txn.userId;
-                document.getElementById('transactionType').value = txn.type;
-                document.getElementById('amount').value = txn.amount;
-                document.getElementById('status').value = txn.status;
-                document.getElementById('description').value = txn.description || '';
-                document.getElementById('reference').value = txn.reference || '';
-                document.getElementById('transactionModal').classList.add('active');
-            } catch (error) {
-                console.error('Error loading transaction:', error);
-                showNotification('Error loading transaction', 'error');
-            }
-        }
-
-        async function saveTransaction(event) {
-            event.preventDefault();
-            const id = document.getElementById('transactionId').value;
-            const data = {
-                userId: document.getElementById('userId').value,
-                type: document.getElementById('transactionType').value,
-                amount: document.getElementById('amount').value,
-                status: document.getElementById('status').value,
-                description: document.getElementById('description').value,
-                reference: document.getElementById('reference').value
-            };
-            try {
-                const url = id ? `${API_URL}/transactions/${id}` : `${API_URL}/transactions`;
-                const method = id ? 'PUT' : 'POST';
-                const response = await fetch(url, {
-                    method: method,
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(data)
-                });
-                if (response.ok) {
-                    closeModal();
-                    loadTransactions();
-                    showNotification('Transaction saved successfully!', 'success');
-                } else {
-                    throw new Error('Failed to save transaction');
-                }
-            } catch (error) {
-                console.error('Error saving transaction:', error);
-                showNotification('Error saving transaction', 'error');
-            }
-        }
-
-        async function deleteTransaction(id) {
-            if (!confirm('Are you sure you want to delete this transaction?')) return;
-            try {
-                const response = await fetch(`${API_URL}/transactions/${id}`, {
-                    method: 'DELETE'
-                });
-                if (response.ok) {
-                    loadTransactions();
-                    showNotification('Transaction deleted successfully!', 'success');
-                } else {
-                    throw new Error('Failed to delete transaction');
-                }
-            } catch (error) {
-                console.error('Error deleting transaction:', error);
-                showNotification('Error deleting transaction', 'error');
-            }
-        }
-
-        function exportTransactions() {
-            const csv = [
-                ['ID', 'User', 'Email', 'Type', 'Amount', 'Status', 'Date', 'Description', 'Reference'],
-                ...filteredTransactions.map(txn => [
-                    txn.id,
-                    txn.userName || 'N/A',
-                    txn.userEmail || 'N/A',
-                    txn.type,
-                    txn.amount,
-                    txn.status,
-                    formatDate(txn.createdAt),
-                    txn.description || '',
-                    txn.reference || ''
-                ])
-            ].map(row => row.join(',')).join('\n');
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `transactions_${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
-        }
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString() + ' ' + date.toLocaleTimeString();
-        }
-
-        function showNotification(message, type) {
-            const notification = document.createElement('div');
-            notification.className = `notification notification-${type}`;
-            notification.innerHTML = `
-                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
-                <span>${message}</span>
-            `;
-            document.body.appendChild(notification);
-            setTimeout(() => notification.classList.add('show'), 10);
-            setTimeout(() => {
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            }, 3000);
-        }
+function showNotification(message, type) {
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+        <span>${message}</span>
+    `;
+    document.body.appendChild(notification);
+    setTimeout(() => notification.classList.add('show'), 10);
+    setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => notification.remove(), 300);
+    }, 3000);
+}
     </script>
 </body>
 </html>
