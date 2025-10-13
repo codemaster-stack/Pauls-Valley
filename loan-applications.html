@@ -248,11 +248,17 @@
   </div>
 
   <script>
-    const token = localStorage.getItem("token");
+    const adminToken = localStorage.getItem("token");
     const apiBase = "https://valley.pvbonline.online/api/admin/auth";
 
     let selectedLoanId = null;
     let selectedAction = null;
+
+    // Check if token exists
+    if (!token) {
+      alert("No authentication token found. Please login first.");
+      window.location.href = "admin-login.html"; // Redirect to login
+    }
 
     async function fetchLoans() {
       const tbody = document.querySelector("#loanTable tbody");
@@ -260,10 +266,18 @@
       try {
         const res = await fetch(`${apiBase}/loans`, {
           headers: { 
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${adminToken}`,
             'Content-Type': 'application/json'
           }
         });
+
+        // Check for unauthorized
+        if (res.status === 401) {
+          alert("Session expired. Please login again.");
+          localStorage.removeItem("token");
+          window.location.href = "admin-signup.html";
+          return;
+        }
 
         if (!res.ok) {
           throw new Error(`HTTP error! status: ${res.status}`);
@@ -359,18 +373,39 @@
 
     async function submitDecision() {
       const adminMessage = document.getElementById("adminMessage").value.trim();
+      const currentToken = localStorage.getItem("token");
+
+      if (!currentToken) {
+        alert("Authentication token missing. Please login again.");
+        window.location.href = "admin-signup.html";
+        return;
+      }
 
       if (selectedAction === 'reject' && !adminMessage) {
         alert("Please provide a reason for rejection.");
         return;
       }
 
+      // Show loading state
+      const modalButtons = document.querySelectorAll('.modal-buttons button');
+      modalButtons.forEach(btn => btn.disabled = true);
+      
+      const submitBtn = document.querySelector('.modal-buttons .btn-approve');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+
       try {
+        console.log('Submitting decision:', {
+          loanId: selectedLoanId,
+          action: selectedAction,
+          endpoint: `${apiBase}/review/${selectedLoanId}`
+        });
+
         const res = await fetch(`${apiBase}/review/${selectedLoanId}`, {
           method: "PUT",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${adminToken}`
+            Authorization: `Bearer ${adminToken}`,
           },
           body: JSON.stringify({
             action: selectedAction,
@@ -378,7 +413,18 @@
           })
         });
 
+        console.log('Response status:', res.status);
+
+        // Handle unauthorized
+        if (res.status === 401) {
+          alert("Session expired. Please login again.");
+          localStorage.removeItem("token");
+          window.location.href = "admin-signup.html";
+          return;
+        }
+
         const data = await res.json();
+        console.log('Response data:', data);
 
         if (res.ok) {
           alert(`✅ Loan ${selectedAction}d successfully!`);
@@ -388,8 +434,11 @@
           alert(data.message || "Error submitting decision.");
         }
       } catch (error) {
-        console.error("Error:", error);
-        alert("Server error while sending decision.");
+        console.error("Error submitting decision:", error);
+        alert("Server error while sending decision. Please try again.");
+      } finally {
+        modalButtons.forEach(btn => btn.disabled = false);
+        submitBtn.innerHTML = originalText;
       }
     }
 

@@ -111,8 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
  
 document.addEventListener("DOMContentLoaded", () => {
   // const BACKEND_URL = "https://api.pvbonline.online";
-  const token = localStorage.getItem("token"); // Change to "adminToken" if different
-
+const adminToken = localStorage.getItem("token");
   // Show message helper
   function showMessage(message, type = 'success') {
     const messageDiv = document.createElement('div');
@@ -126,33 +125,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Create User Form
-  // const createUserForm = document.getElementById('createUserForm');
-  // if (createUserForm) {
-  //   createUserForm.addEventListener('submit', async (e) => {
-  //     e.preventDefault();
-  //     const formData = new FormData(e.target);
-  //     const data = Object.fromEntries(formData);
-      
-  //     try {
-  //       const response = await fetch(`${BACKEND_URL}/api/users/register`, {
-  //         method: 'POST',
-  //         headers: { 'Content-Type': 'application/json' },
-  //         body: JSON.stringify(data)
-  //       });
-        
-  //       const result = await response.json();
-  //       if (response.ok) {
-  //         showMessage('User created successfully!');
-  //         e.target.reset();
-  //       } else {
-  //         showMessage(result.message || 'Failed to create user', 'error');
-  //       }
-  //     } catch (error) {
-  //       showMessage('Error creating user', 'error');
-  //       console.error(error);
-  //     }
-  //   });
-  // }
   const createUserForm = document.getElementById('createUserForm');
 if (createUserForm) {
   createUserForm.addEventListener('submit', async (e) => {
@@ -200,33 +172,6 @@ if (createUserForm) {
 }
 
   // Delete User Form
-  // const deleteUserForm = document.getElementById('deleteUserForm');
-  // if (deleteUserForm) {
-  //   deleteUserForm.addEventListener('submit', async (e) => {
-  //     e.preventDefault();
-  //     const email = e.target.email.value;
-      
-  //     if (!confirm(`Are you sure you want to delete user: ${email}?`)) return;
-      
-  //     try {
-  //       const response = await fetch(`${BACKEND_URL}/api/admin/auth/users/${email}`, {
-  //         method: 'DELETE',
-  //         headers: { 'Authorization': `Bearer ${localStorage.getItem('adminToken')}` }
-  //       });
-        
-  //       const result = await response.json();
-  //       if (response.ok) {
-  //         showMessage('User deleted successfully!');
-  //         e.target.reset();
-  //       } else {
-  //         showMessage(result.message || 'Failed to delete user', 'error');
-  //       }
-  //     } catch (error) {
-  //       showMessage('Error deleting user', 'error');
-  //       console.error(error);
-  //     }
-  //   });
-  // }
   const deleteUserForm = document.getElementById('deleteUserForm');
 if (deleteUserForm) {
   deleteUserForm.addEventListener('submit', async (e) => {
@@ -262,67 +207,7 @@ if (deleteUserForm) {
     }
   });
 }
-
-  // Deactivate User Form
-  // const deactivateUserForm = document.getElementById('deactivateUserForm');
-  // if (deactivateUserForm) {
-  //   deactivateUserForm.addEventListener('submit', async (e) => {
-  //     e.preventDefault();
-  //     const email = e.target.email.value;
-      
-  //     try {
-  //       const response = await fetch(`${BACKEND_URL}/api/admin/auth/users/${email}/deactivate`, {
-  //         method: 'PUT',
-  //         headers: { 'Authorization': `Bearer ${localStorage.getItem("adminToken")}` }
-  //       });
-        
-  //       const result = await response.json();
-  //       if (response.ok) {
-  //         showMessage('User deactivated successfully!');
-  //         e.target.reset();
-  //       } else {
-  //         showMessage(result.message || 'Failed to deactivate user', 'error');
-  //       }
-  //     } catch (error) {
-  //       showMessage('Error deactivating user', 'error');
-  //       console.error(error);
-  //     }
-  //   });
-  // }
-
-// const deactivateUserForm = document.getElementById('deactivateUserForm');
-// if (deactivateUserForm) {
-//   deactivateUserForm.addEventListener('submit', async (e) => {
-//     e.preventDefault();
-//     const email = e.target.email.value;
-    
-//     const submitBtn = e.target.querySelector('button[type="submit"]');
-//     const originalText = submitBtn.innerHTML;
-//     submitBtn.innerHTML = '<span class="spinner"></span> Deactivating...';
-//     submitBtn.disabled = true;
-    
-//     try {
-//       const response = await fetch(`${BACKEND_URL}/api/admin/auth/users/${email}/deactivate`, {
-//         method: 'PUT',
-//         headers: { 'Authorization': `Bearer ${localStorage.getItem("adminToken")}` }
-//       });
-      
-//       const result = await response.json();
-//       if (response.ok) {
-//         showMessage('User deactivated successfully!');
-//         e.target.reset();
-//       } else {
-//         showMessage(result.message || 'Failed to deactivate user', 'error');
-//       }
-//     } catch (error) {
-//       showMessage('Error deactivating user', 'error');
-//       console.error(error);
-//     } finally {
-//       submitBtn.innerHTML = originalText;
-//       submitBtn.disabled = false;
-//     }
-//   });
-// }
+  // ========== DEACTIVATE USER (ADMIN & SUPERADMIN) ==========
   
 const deactivateUserForm = document.getElementById('deactivateUserForm');
   if (deactivateUserForm) {
@@ -404,97 +289,6 @@ const deactivateUserForm = document.getElementById('deactivateUserForm');
 
   // Reactivate User Form
 
-//   const reactivateUserForm = document.getElementById('reactivateUserForm');
-// if (reactivateUserForm) {
-//   reactivateUserForm.addEventListener('submit', async (e) => {
-//     e.preventDefault();
-//     const email = e.target.email.value;
-    
-//     try {
-//       const response = await fetch(`${BACKEND_URL}/api/admin/auth/users/${email}/reactivate`, {
-//         method: 'PUT',
-//         headers: { 'Authorization': `Bearer ${localStorage.getItem("adminToken")}` }
-//       });
-      
-//       const result = await response.json();
-//       if (response.ok) {
-//         showMessage('User reactivated successfully!');
-//         e.target.reset();
-//       } else {
-//         showMessage(result.message || 'Failed to reactivate user', 'error');
-//       }
-//     } catch (error) {
-//       showMessage('Error reactivating user', 'error');
-//       console.error(error);
-//     }
-//   });
-// }
-
-// const reactivateUserForm = document.getElementById('reactivateUserForm');
-// if (reactivateUserForm) {
-//   reactivateUserForm.addEventListener('submit', async (e) => {
-//     e.preventDefault();
-//     const email = e.target.email.value;
-    
-//     const submitBtn = e.target.querySelector('button[type="submit"]');
-//     const originalText = submitBtn.innerHTML;
-//     submitBtn.innerHTML = '<span class="spinner"></span> Reactivating...';
-//     submitBtn.disabled = true;
-    
-//     try {
-//       const response = await fetch(`${BACKEND_URL}/api/admin/auth/users/${email}/reactivate`, {
-//         method: 'PUT',
-//         headers: { 'Authorization': `Bearer ${localStorage.getItem("adminToken")}` }
-//       });
-      
-//       const result = await response.json();
-//       if (response.ok) {
-//         showMessage('User reactivated successfully!');
-//         e.target.reset();
-//       } else {
-//         showMessage(result.message || 'Failed to reactivate user', 'error');
-//       }
-//     } catch (error) {
-//       showMessage('Error reactivating user', 'error');
-//       console.error(error);
-//     } finally {
-//       submitBtn.innerHTML = originalText;
-//       submitBtn.disabled = false;
-//     }
-//   });
-// }
-
-  // Fund User Form
-  // const fundUserForm = document.getElementById('fundUserForm');
-  // if (fundUserForm) {
-  //   fundUserForm.addEventListener('submit', async (e) => {
-  //     e.preventDefault();
-  //     const formData = new FormData(e.target);
-  //     const data = Object.fromEntries(formData);
-      
-  //     try {
-  //       const response = await fetch(`${BACKEND_URL}/api/admin/auth/fund-user`, {
-  //         method: 'POST',
-  //         headers: { 
-  //           'Content-Type': 'application/json',
-  //           'Authorization': `Bearer ${localStorage.getItem("adminToken")}` 
-  //         },
-  //         body: JSON.stringify(data)
-  //       });
-        
-  //       const result = await response.json();
-  //       if (response.ok) {
-  //         showMessage('User account funded successfully!');
-  //         e.target.reset();
-  //       } else {
-  //         showMessage(result.message || 'Failed to fund user account', 'error');
-  //       }
-  //     } catch (error) {
-  //       showMessage('Error funding user account', 'error');
-  //       console.error(error);
-  //     }
-  //   });
-  // }
 const fundUserForm = document.getElementById('fundUserForm');
 
 if (fundUserForm) {
@@ -559,37 +353,6 @@ if (fundUserForm) {
 
   // transfer
 
-// const transferForm = document.getElementById('transferForm');
-// if (transferForm) {
-//   transferForm.addEventListener('submit', async (e) => {
-//     e.preventDefault();
-//     const formData = new FormData(e.target);
-//     const data = Object.fromEntries(formData); // This will now include both senderDescription and receiverDescription
-    
-//     try {
-//       const response = await fetch(`${BACKEND_URL}/api/admin/auth/transfer-funds`, {
-//         method: 'POST',
-//         headers: { 
-//           'Content-Type': 'application/json',
-//           'Authorization': `Bearer ${localStorage.getItem("adminToken")}` 
-//         },
-//         body: JSON.stringify(data) // Sends both descriptions to backend
-//       });
-      
-//       const result = await response.json();
-//       if (response.ok) {
-//         showMessage('Funds transferred successfully!');
-//         e.target.reset();
-//       } else {
-//         showMessage(result.message || 'Failed to transfer funds', 'error');
-//       }
-//     } catch (error) {
-//       showMessage('Error transferring funds', 'error');
-//       console.error(error);
-//     }
-//   });
-// }
-
 const transferForm = document.getElementById('transferForm');
 if (transferForm) {
   transferForm.addEventListener('submit', async (e) => {
@@ -630,37 +393,7 @@ if (transferForm) {
   });
 }
 
-  // Send Email Form
-  // const sendEmailForm = document.getElementById('sendEmailForm');
-  // if (sendEmailForm) {
-  //   sendEmailForm.addEventListener('submit', async (e) => {
-  //     e.preventDefault();
-  //     const formData = new FormData(e.target);
-  //     const data = Object.fromEntries(formData);
-      
-  //     try {
-  //       const response = await fetch(`${BACKEND_URL}/api/admin/auth/send-email`, {
-  //         method: 'POST',
-  //         headers: { 
-  //           'Content-Type': 'application/json',
-  //           'Authorization': `Bearer ${localStorage.getItem("adminToken")}` 
-  //         },
-  //         body: JSON.stringify(data)
-  //       });
-        
-  //       const result = await response.json();
-  //       if (response.ok) {
-  //         showMessage('Email sent successfully!');
-  //         e.target.reset();
-  //       } else {
-  //         showMessage(result.message || 'Failed to send email', 'error');
-  //       }
-  //     } catch (error) {
-  //       showMessage('Error sending email', 'error');
-  //       console.error(error);
-  //     }
-  //   });
-  // }
+ 
 const sendEmailForm = document.getElementById('sendEmailForm');
 if (sendEmailForm) {
   sendEmailForm.addEventListener('submit', async (e) => {
