@@ -6,7 +6,7 @@ let autoSlideInterval;
 // Fetch marketing slides from backend
 async function loadMarketingSlides() {
   try {
-    const response = await fetch('https://valley.pvbonline.online/api/marketing/slides/public/active');
+    const response = await fetch('https://valley.pvbonline.online/api/slides/public/active');
     const data = await response.json();
     
     if (!response.ok) throw new Error(data.message || 'Failed to load slides');
