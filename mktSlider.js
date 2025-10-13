@@ -38,16 +38,16 @@ function renderSlides() {
     li.className = slide.slideClass || `mk-slide${(index % 3) + 1}`; // Use slideClass from backend
     li.style.display = index === 0 ? 'block' : 'none';
     
-    // Build the background image URL
-    let bgImageUrl = '';
+    // Apply background image if exists
     if (slide.backgroundImage) {
       // Check if it's already a full URL (starts with http)
-      if (slide.backgroundImage.startsWith('http')) {
-        bgImageUrl = slide.backgroundImage;
-      } else {
-        // It's a relative path, prepend the base URL
-        bgImageUrl = `https://valley.pvbonline.online${slide.backgroundImage}`;
-      }
+      let bgImageUrl = slide.backgroundImage.startsWith('http') 
+        ? slide.backgroundImage 
+        : `https://valley.pvbonline.online${slide.backgroundImage}`;
+      
+      li.style.backgroundImage = `url('${bgImageUrl}')`;
+      li.style.backgroundSize = 'cover';
+      li.style.backgroundPosition = 'center';
     }
     
     li.innerHTML = `
@@ -59,11 +59,6 @@ function renderSlides() {
             `<button class="marketing-btn" onclick="${slide.buttonAction}">${slide.buttonText}</button>` 
             : ''}
         </div>
-        ${bgImageUrl ? 
-          `<div class="marketing-image">
-            <img src="${bgImageUrl}" alt="${slide.title}" onerror="this.parentElement.style.display='none'">
-          </div>` 
-          : ''}
       </div>
     `;
     
