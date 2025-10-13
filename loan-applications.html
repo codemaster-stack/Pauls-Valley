@@ -2,104 +2,210 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Loan Applications | Valley Bank Admin</title>
-  <link rel="stylesheet" href="admin.css">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loan Applications - Admin</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      padding: 2rem;
-      background: #f8f9fa;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
     }
 
     h1 {
-      color: #007bff;
-      margin-bottom: 1rem;
+      color: white;
+      text-align: center;
+      margin-bottom: 30px;
+      font-size: 2.5rem;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+    }
+
+    h1 i {
+      margin-right: 10px;
     }
 
     table {
       width: 100%;
-      border-collapse: collapse;
-      background: #fff;
+      max-width: 1200px;
+      margin: 0 auto;
+      background: white;
       border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
     }
 
     th, td {
-      padding: 1rem;
-      border-bottom: 1px solid #eee;
+      padding: 15px;
       text-align: left;
     }
 
     th {
-      background: #007bff;
-      color: white;
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 0.9rem;
+      letter-spacing: 0.5px;
     }
 
-    tr:hover {
-      background: #f1f9ff;
+    tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: background 0.3s;
+    }
+
+    tbody tr:hover {
+      background: #f8f9ff;
+    }
+
+    .status {
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      text-transform: capitalize;
+      display: inline-block;
+    }
+
+    .status.pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status.approved {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status.rejected {
+      background: #f8d7da;
+      color: #721c24;
     }
 
     .btn {
-      padding: 6px 10px;
+      padding: 8px 16px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
-      color: #fff;
-      font-size: 0.9rem;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.3s;
+      margin: 0 5px;
     }
 
     .btn-approve {
       background: #28a745;
+      color: white;
+    }
+
+    .btn-approve:hover {
+      background: #218838;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(40, 167, 69, 0.3);
     }
 
     .btn-reject {
       background: #dc3545;
+      color: white;
     }
 
-    .status {
-      font-weight: bold;
-      text-transform: capitalize;
+    .btn-reject:hover {
+      background: #c82333;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
     }
-
-    .status.pending { color: #ffc107; }
-    .status.approved { color: #28a745; }
-    .status.rejected { color: #dc3545; }
 
     #messageModal {
       display: none;
       position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.5);
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
       justify-content: center;
       align-items: center;
+      z-index: 1000;
     }
 
     .modal-content {
-      background: #fff;
-      padding: 1.5rem;
-      border-radius: 10px;
+      background: white;
+      padding: 30px;
+      border-radius: 15px;
       width: 90%;
-      max-width: 400px;
+      max-width: 500px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
     }
 
-    .modal-content textarea {
+    .modal-content h3 {
+      margin-bottom: 20px;
+      color: #333;
+      font-size: 1.5rem;
+    }
+
+    #adminMessage {
       width: 100%;
-      height: 100px;
-      margin-top: 10px;
-      padding: 10px;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-family: inherit;
+      resize: vertical;
+      min-height: 120px;
+      margin-bottom: 20px;
+    }
+
+    #adminMessage:focus {
+      outline: none;
+      border-color: #667eea;
     }
 
     .modal-buttons {
       display: flex;
       justify-content: flex-end;
-      margin-top: 10px;
+      gap: 10px;
     }
 
-    .modal-buttons button {
-      margin-left: 10px;
+    .loading, .error, .empty {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+      font-size: 1.1rem;
+    }
+
+    .loading i, .error i, .empty i {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      table {
+        font-size: 0.85rem;
+      }
+
+      th, td {
+        padding: 10px 8px;
+      }
+
+      .btn {
+        padding: 6px 12px;
+        font-size: 0.75rem;
+        margin: 2px;
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
     }
   </style>
 </head>
@@ -111,14 +217,21 @@
       <tr>
         <th>Applicant</th>
         <th>Email</th>
+        <th>Phone</th>
         <th>Type</th>
         <th>Amount</th>
+        <th>Purpose</th>
         <th>Status</th>
         <th>Actions</th>
       </tr>
     </thead>
     <tbody>
-      <tr><td colspan="6" style="text-align:center;">Loading applications...</td></tr>
+      <tr>
+        <td colspan="8" class="loading">
+          <i class="fas fa-spinner fa-spin"></i>
+          <div>Loading applications...</div>
+        </td>
+      </tr>
     </tbody>
   </table>
 
@@ -134,93 +247,169 @@
     </div>
   </div>
 
+  <script>
+    const token = localStorage.getItem("token");
+    const apiBase = "https://valley.pvbonline.online/api/admin/auth";
 
+    let selectedLoanId = null;
+    let selectedAction = null;
 
-<script>
- const token = localStorage.getItem("token"); // admin token
-const apiBase = "https://valley.pvbonline.online/api/admin/auth"; // adjust if different
+    async function fetchLoans() {
+      const tbody = document.querySelector("#loanTable tbody");
+      
+      try {
+        const res = await fetch(`${apiBase}/loans`, {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
 
-let selectedLoanId = null;
-let selectedAction = null;
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
 
-async function fetchLoans() {
-  const res = await fetch(`${apiBase}/loans`, {
-    headers: { Authorization: `Bearer ${token}` }
-  });
+        const data = await res.json();
+        console.log('API Response:', data); // Debug log
 
-  const data = await res.json();
-  const tbody = document.querySelector("#loanTable tbody");
+        // Handle both response formats
+        let loans = [];
+        
+        if (Array.isArray(data)) {
+          // Direct array response
+          loans = data;
+        } else if (data.success && Array.isArray(data.loans)) {
+          // Wrapped response
+          loans = data.loans;
+        } else if (data.loans && Array.isArray(data.loans)) {
+          // Just loans property
+          loans = data.loans;
+        }
 
-  if (!data.success || !data.loans || data.loans.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No loan applications found</td></tr>`;
-    return;
-  }
+        if (loans.length === 0) {
+          tbody.innerHTML = `
+            <tr>
+              <td colspan="8" class="empty">
+                <i class="fas fa-inbox"></i>
+                <div>No loan applications found</div>
+              </td>
+            </tr>
+          `;
+          return;
+        }
 
-  tbody.innerHTML = data.loans.map(l => `
-    <tr>
-      <td>${l.applicantName}</td>
-      <td>${l.applicantEmail}</td>
-      <td>${l.loanType}</td>
-      <td>$${l.loanAmount.toLocaleString()}</td>
-      <td class="status ${l.status}">${l.status}</td>
-      <td>
-        ${l.status === "pending" ? `
-          <button class="btn btn-approve" onclick="openModal('${l._id}', 'approve')">Approve</button>
-          <button class="btn btn-reject" onclick="openModal('${l._id}', 'reject')">Reject</button>
-        ` : '-'}
-      </td>
-    </tr>
-  `).join("");
-}
+        tbody.innerHTML = loans.map(l => `
+          <tr>
+            <td><strong>${l.applicantName}</strong></td>
+            <td>${l.applicantEmail}</td>
+            <td>${l.applicantPhone || 'N/A'}</td>
+            <td style="text-transform: capitalize;">${l.loanType}</td>
+            <td><strong>$${Number(l.loanAmount).toLocaleString()}</strong></td>
+            <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${l.loanPurpose || 'N/A'}">
+              ${l.loanPurpose || 'N/A'}
+            </td>
+            <td><span class="status ${l.status}">${l.status}</span></td>
+            <td>
+              ${l.status === "pending" ? `
+                <button class="btn btn-approve" onclick="openModal('${l._id}', 'approve')">
+                  <i class="fas fa-check"></i> Approve
+                </button>
+                <button class="btn btn-reject" onclick="openModal('${l._id}', 'reject')">
+                  <i class="fas fa-times"></i> Reject
+                </button>
+              ` : '<span style="color: #999;">-</span>'}
+            </td>
+          </tr>
+        `).join("");
 
-function openModal(loanId, action) {
-  selectedLoanId = loanId;
-  selectedAction = action;
-  document.getElementById("modalTitle").textContent =
-    action === "approve" ? "Approve Loan" : "Reject Loan";
-  document.getElementById("adminMessage").value = "";
-  document.getElementById("messageModal").style.display = "flex";
-}
+      } catch (error) {
+        console.error('Error fetching loans:', error);
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" class="error">
+              <i class="fas fa-exclamation-triangle"></i>
+              <div>Error loading applications. Please try again.</div>
+              <button class="btn btn-approve" onclick="fetchLoans()" style="margin-top: 15px;">
+                <i class="fas fa-refresh"></i> Retry
+              </button>
+            </td>
+          </tr>
+        `;
+      }
+    }
 
-function closeModal() {
-  document.getElementById("messageModal").style.display = "none";
-}
+    function openModal(loanId, action) {
+      selectedLoanId = loanId;
+      selectedAction = action;
+      document.getElementById("modalTitle").textContent =
+        action === "approve" ? "✅ Approve Loan Application" : "❌ Reject Loan Application";
+      document.getElementById("adminMessage").value = "";
+      document.getElementById("adminMessage").placeholder = 
+        action === "approve" 
+          ? "Enter approval message (optional)..." 
+          : "Enter reason for rejection...";
+      document.getElementById("messageModal").style.display = "flex";
+    }
 
-async function submitDecision() {
-  const adminMessage = document.getElementById("adminMessage").value.trim();
+    function closeModal() {
+      document.getElementById("messageModal").style.display = "none";
+      selectedLoanId = null;
+      selectedAction = null;
+    }
 
-  try {
-    const res = await fetch(`${apiBase}/review/${selectedLoanId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        action: selectedAction,
-        adminMessage
-      })
+    async function submitDecision() {
+      const adminMessage = document.getElementById("adminMessage").value.trim();
+
+      if (selectedAction === 'reject' && !adminMessage) {
+        alert("Please provide a reason for rejection.");
+        return;
+      }
+
+      try {
+        const res = await fetch(`${apiBase}/review/${selectedLoanId}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            action: selectedAction,
+            adminMessage
+          })
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert(`✅ Loan ${selectedAction}d successfully!`);
+          closeModal();
+          fetchLoans();
+        } else {
+          alert(data.message || "Error submitting decision.");
+        }
+      } catch (error) {
+        console.error("Error:", error);
+        alert("Server error while sending decision.");
+      }
+    }
+
+    // Close modal when clicking outside
+    document.getElementById("messageModal").addEventListener('click', (e) => {
+      if (e.target.id === 'messageModal') {
+        closeModal();
+      }
     });
 
-    const data = await res.json();
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && document.getElementById("messageModal").style.display === 'flex') {
+        closeModal();
+      }
+    });
 
-    if (res.ok) {
-      alert(`Loan ${selectedAction}d successfully!`);
-      closeModal();
-      fetchLoans();
-    } else {
-      alert(data.message || "Error submitting decision.");
-    }
-  } catch (error) {
-    console.error("Error:", error);
-    alert("Server error while sending decision.");
-  }
-}
+    // Load loans when page loads
+    document.addEventListener("DOMContentLoaded", fetchLoans);
+  </script>
 
-document.addEventListener("DOMContentLoaded", fetchLoans);
-
-
-    </script>
-
-    </body>
+</body>
 </html>
