@@ -84,20 +84,31 @@ function renderDots() {
 
 // Navigate to specific slide
 function goToSlide(index) {
-  if (index < 0 || index >= slides.length) return;
+  if (index < 0 || index >= slides.length || slides.length === 0) return;
   
   const container = document.getElementById('marketing-slides-container');
   const allSlides = container.querySelectorAll('li');
   const dots = document.querySelectorAll('.mm-control-dot');
   
+  // Check if slides and dots exist
+  if (allSlides.length === 0 || dots.length === 0) return;
+  
   // Hide current slide
-  allSlides[currentSlide].style.display = 'none';
-  dots[currentSlide].classList.remove('active');
+  if (allSlides[currentSlide]) {
+    allSlides[currentSlide].style.display = 'none';
+  }
+  if (dots[currentSlide]) {
+    dots[currentSlide].classList.remove('active');
+  }
   
   // Show new slide
   currentSlide = index;
-  allSlides[currentSlide].style.display = 'block';
-  dots[currentSlide].classList.add('active');
+  if (allSlides[currentSlide]) {
+    allSlides[currentSlide].style.display = 'block';
+  }
+  if (dots[currentSlide]) {
+    dots[currentSlide].classList.add('active');
+  }
   
   // Reset auto-slide timer
   resetAutoSlide();
@@ -117,7 +128,10 @@ function prevSlide() {
 
 // Auto-slide functionality
 function startAutoSlide() {
-  autoSlideInterval = setInterval(nextSlide, 5000); // Change slide every 5 seconds
+  // Only start auto-slide if there are multiple slides
+  if (slides.length > 1) {
+    autoSlideInterval = setInterval(nextSlide, 5000); // Change slide every 5 seconds
+  }
 }
 
 function resetAutoSlide() {
