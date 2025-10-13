@@ -35,21 +35,33 @@ function renderSlides() {
   
   slides.forEach((slide, index) => {
     const li = document.createElement('li');
-    li.className = `mk-slide${(index % 3) + 1}`; // Rotate between mk-slide1, mk-slide2, mk-slide3
+    li.className = slide.slideClass || `mk-slide${(index % 3) + 1}`; // Use slideClass from backend
     li.style.display = index === 0 ? 'block' : 'none';
+    
+    // Build the background image URL
+    let bgImageUrl = '';
+    if (slide.backgroundImage) {
+      // Check if it's already a full URL (starts with http)
+      if (slide.backgroundImage.startsWith('http')) {
+        bgImageUrl = slide.backgroundImage;
+      } else {
+        // It's a relative path, prepend the base URL
+        bgImageUrl = `https://valley.pvbonline.online${slide.backgroundImage}`;
+      }
+    }
     
     li.innerHTML = `
       <div class="container">
         <div class="marketing-text">
           <h2 class="marketing-title">${slide.title}</h2>
-          <p class="marketing-subtitle">${slide.description || slide.subtitle || ''}</p>
-          ${slide.buttonText && slide.buttonLink ? 
-            `<a href="${slide.buttonLink}" class="marketing-btn">${slide.buttonText}</a>` 
+          <p class="marketing-subtitle">${slide.subtitle || slide.description || ''}</p>
+          ${slide.buttonText && slide.buttonAction ? 
+            `<button class="marketing-btn" onclick="${slide.buttonAction}">${slide.buttonText}</button>` 
             : ''}
         </div>
-        ${slide.backgroundImage ? 
+        ${bgImageUrl ? 
           `<div class="marketing-image">
-            <img src="${slide.backgroundImage}" alt="${slide.title}">
+            <img src="${bgImageUrl}" alt="${slide.title}" onerror="this.parentElement.style.display='none'">
           </div>` 
           : ''}
       </div>
