@@ -249,12 +249,12 @@
       cards.forEach(c => {
   const container = document.getElementById("cardContainer");
   const balance = c.cardBalance ? Number(c.cardBalance) : 0;
-
+  
   const cardDiv = document.createElement("div");
   cardDiv.className = "card-box";
-
-  // NEW: check if card is active
-  if (!c.isActive) {
+  
+  // ✅ FIXED: Check if card has a status message (pending or deactivated)
+  if (c.statusMessage) {
     cardDiv.innerHTML = `<p style="color:red; font-weight:bold;">${c.statusMessage}</p>`;
   } else {
     cardDiv.innerHTML = `
@@ -280,7 +280,7 @@
             </div>
             <div class="card-type">${c.cardType.toUpperCase()}</div>
           </div>
-
+          
           <!-- Back -->
           <div class="flip-card-back">
             <div class="magnetic-strip"></div>
@@ -294,7 +294,7 @@
       <div class="card-balance">Balance: $${balance.toLocaleString()}</div>
     `;
   }
-
+  
   container.appendChild(cardDiv);
 });
 
