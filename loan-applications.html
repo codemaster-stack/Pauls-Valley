@@ -248,7 +248,7 @@
   </div>
 
   <script>
-    const adminToken = localStorage.getItem("token");
+    const adminToken = localStorage.getItem("adminToken");
     const apiBase = "https://valley.pvbonline.online/api/admin/auth";
 
     let selectedLoanId = null;
@@ -373,12 +373,11 @@
 
     async function submitDecision() {
       const adminMessage = document.getElementById("adminMessage").value.trim();
-      const currentToken = localStorage.getItem("token");
-
-      if (!currentToken) {
-        alert("Authentication token missing. Please login again.");
-        window.location.href = "admin-signup.html";
-        return;
+    // Use adminToken that's already defined at the top
+     if (!adminToken) {
+       alert("Authentication token missing. Please login again.");
+       window.location.href = "admin-signup.html";
+       return;
       }
 
       if (selectedAction === 'reject' && !adminMessage) {
