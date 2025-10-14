@@ -139,7 +139,7 @@
   </div>
 
   <!-- Enter PIN Modal -->
-  <div id="enterPinModal" class="modal">
+  <!-- <div id="enterPinModal" class="modal">
     <div class="modal-content">
       <h3>🔐 Enter Transfer PIN</h3>
       <p>Please enter your 4-digit transfer PIN to proceed.</p>
@@ -147,7 +147,29 @@
       <button class="btn-primary" onclick="verifyAndFund()">Confirm & Fund</button>
       <button class="btn-secondary" onclick="closeModal('enterPinModal')">Cancel</button>
     </div>
+  </div> -->
+
+        <!-- Enter PIN Modal -->
+<div id="enterPinModal" class="modal">
+  <div class="modal-content">
+    <h3>🔐 Enter Transfer PIN</h3>
+    <p>Please enter your 4-digit transfer PIN to proceed.</p>
+    <input type="password" id="transferPin" placeholder="Enter your PIN" maxlength="4" inputmode="numeric">
+    <button class="btn-primary" onclick="verifyAndFund()">Confirm & Fund</button>
+    <button class="btn-link" onclick="closeModal('enterPinModal'); openForgotPinModal()">Forgot PIN?</button>
+    <button class="btn-secondary" onclick="closeModal('enterPinModal')">Cancel</button>
   </div>
+</div>
+      
+     <!-- Forgot PIN Modal -->
+<div id="forgotPinModal" class="modal">
+  <div class="modal-content">
+    <h3>🔑 Reset Transfer PIN</h3>
+    <p>A reset link will be sent to your registered email address.</p>
+    <button class="btn-primary" onclick="sendForgotPinEmail()">Send Reset Link</button>
+    <button class="btn-secondary" onclick="closeModal('forgotPinModal')">Cancel</button>
+  </div>
+</div>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
@@ -162,65 +184,35 @@
         }
       }
 
-      window.closeModal = function(modalId) {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-          modal.style.display = "none";
-          // Clear input fields
-          if (modalId === 'createPinModal') {
-            document.getElementById('newPin').value = '';
-            document.getElementById('confirmPin').value = '';
-          } else if (modalId === 'enterPinModal') {
-            document.getElementById('enterPin').value = '';
-          }
-        }
-      }
-
-      // Create Transfer PIN
-      // window.createPin = async function() {
-      //   const newPin = document.getElementById('newPin').value;
-      //   const confirmPin = document.getElementById('confirmPin').value;
-
-      //   if (!newPin || !confirmPin) {
-      //     return alert('Please fill in both PIN fields');
-      //   }
-
-      //   if (newPin.length !== 4 || confirmPin.length !== 4) {
-      //     return alert('PIN must be exactly 4 digits');
-      //   }
-
-      //   if (!/^\d{4}$/.test(newPin)) {
-      //     return alert('PIN must contain only numbers');
-      //   }
-
-      //   if (newPin !== confirmPin) {
-      //     return alert('PINs do not match');
-      //   }
-
-      //   try {
-      //     const res = await fetch('https://valley.pvbonline.online/api/transaction/create-pin', {
-      //       method: 'POST',
-      //       headers: {
-      //         'Authorization': `Bearer ${localStorage.getItem('token')}`,
-      //         'Content-Type': 'application/json'
-      //       },
-      //       body: JSON.stringify({ pin: newPin })
-      //     });
-
-      //     const data = await res.json();
-          
-      //     if (res.ok) {
-      //       alert('Transfer PIN created successfully!');
-      //       closeModal('createPinModal');
-      //       openModal('enterPinModal');
-      //     } else {
-      //       alert(data.message || 'Failed to create PIN');
+      // window.closeModal = function(modalId) {
+      //   const modal = document.getElementById(modalId);
+      //   if (modal) {
+      //     modal.style.display = "none";
+      //     // Clear input fields
+      //     if (modalId === 'createPinModal') {
+      //       document.getElementById('newPin').value = '';
+      //       document.getElementById('confirmPin').value = '';
+      //     } else if (modalId === 'enterPinModal') {
+      //       document.getElementById('enterPin').value = '';
       //     }
-      //   } catch (error) {
-      //     console.error('Error creating PIN:', error);
-      //     alert('Network error. Please try again.');
       //   }
       // }
+      window.closeModal = function(modalId) {
+  const modal = document.getElementById(modalId);
+  if (modal) {
+    modal.style.display = "none";
+    // Clear input fields
+    if (modalId === 'createPinModal') {
+      document.getElementById('newPin').value = '';
+      document.getElementById('confirmPin').value = '';
+    } else if (modalId === 'enterPinModal') {
+      document.getElementById('transferPin').value = '';
+    }
+  }
+}
+
+      // Create Transfer PIN
+     
       window.createPin = async function() {
   const newPin = document.getElementById('newPin').value;
   const confirmPin = document.getElementById('confirmPin').value;
@@ -270,7 +262,205 @@
 }
 
       // Verify PIN and Fund Card
-      // window.verifyAndFund = async function() {
+     
+      window.verifyAndFund = async function() {
+  const pin = document.getElementById("transferPin").value;
+
+  if (!pin || pin.length !== 4) {
+    return alert('Please enter your 4-digit PIN');
+  }
+
+  if (!/^\d{4}$/.test(pin)) {
+    return alert('PIN must contain only numbers');
+  }
+
+  const { cardId, amount, source } = window.fundCardData;
+
+  try {
+    // Disable button and show loading state
+    const confirmBtn = document.querySelector('#enterPinModal .btn-primary');
+    if (confirmBtn) {
+      confirmBtn.disabled = true;
+      confirmBtn.textContent = "Processing...";
+    }
+
+    const res = await fetch('https://valley.pvbonline.online/api/users/fund-card', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ cardId, amount, source, pin })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert(`✅ Card funded successfully! New Balance: $${data.card.cardBalance}`);
+      closeModal('enterPinModal');
+      window.fundCardData = null;
+      location.reload();
+    } else {
+      alert(data.message || 'Funding failed');
+      document.getElementById('transferPin').value = '';
+    }
+  } catch (error) {
+    console.error('Error funding card:', error);
+    alert('Network error. Please try again.');
+  } finally {
+    const confirmBtn = document.querySelector('#enterPinModal .btn-primary');
+    if (confirmBtn) {
+      confirmBtn.disabled = false;
+      confirmBtn.textContent = "Confirm & Fund";
+    }
+  }
+}
+
+// Open Forgot PIN Modal
+window.openForgotPinModal = function() {
+  openModal('forgotPinModal');
+}
+
+// Send Forgot PIN Email
+window.sendForgotPinEmail = async function() {
+  try {
+    const btn = document.querySelector('#forgotPinModal .btn-primary');
+    if (btn) {
+      btn.disabled = true;
+      btn.textContent = "Sending...";
+    }
+
+    const res = await fetch('https://valley.pvbonline.online/api/transaction/forgot-pin', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      alert('✅ PIN reset instructions sent to your email!');
+      closeModal('forgotPinModal');
+    } else {
+      alert(data.message || 'Failed to send reset instructions');
+    }
+  } catch (error) {
+    console.error('Error sending forgot PIN email:', error);
+    alert('Network error. Please try again.');
+  } finally {
+    const btn = document.querySelector('#forgotPinModal .btn-primary');
+    if (btn) {
+      btn.disabled = false;
+      btn.textContent = "Send Reset Link";
+    }
+  }
+}
+
+      // Load user's cards
+      async function loadCards() {
+        try {
+          document.getElementById('loadingCards').style.display = 'block';
+          
+          const res = await fetch('https://valley.pvbonline.online/api/users/my-cards', {
+            headers: { 
+              'Authorization': `Bearer ${localStorage.getItem('token')}` 
+            }
+          });
+
+          const cards = await res.json();
+          document.getElementById('loadingCards').style.display = 'none';
+          const select = document.getElementById('cardSelect');
+
+          if (cards.length === 0) {
+            alert('You have no cards. Redirecting to create one...');
+            window.location.href = 'atm.html';
+            return;
+          }
+
+          cards.forEach(c => {
+            const opt = document.createElement('option');
+            opt.value = c._id;
+            opt.textContent = `${c.cardType.toUpperCase()} - ${c.cardNumber.slice(-4)} ($${c.cardBalance.toFixed(2)})`;
+            select.appendChild(opt);
+          });
+        } catch (error) {
+          document.getElementById('loadingCards').style.display = 'none';
+          console.error('Error loading cards:', error);
+          alert('Failed to load cards. Please refresh the page.');
+        }
+      }
+      
+      // Check if user has transfer PIN
+      // async function checkPinStatus() {
+      //   try {
+      //     const res = await fetch('https://valley.pvbonline.online/api/users/check-pin-status', {
+      //       headers: { 
+      //         'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      //         'Content-Type': 'application/json'
+      //       }
+      //     });
+      //     const data = await res.json();
+      //     return data.hasPin;
+      //   } catch (error) {
+      //     console.error('Error checking PIN status:', error);
+      //     return false;
+      //   }
+      // }
+async function checkPinStatus() {
+  try {
+    const res = await fetch('https://valley.pvbonline.online/api/transaction/check-pin-status', {
+      headers: { 
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      }
+    });
+    const data = await res.json();
+    return data.hasPinSetup;  // Changed from hasPin to hasPinSetup
+  } catch (error) {
+    console.error('Error checking PIN status:', error);
+    return false;
+  }
+}
+      // Form submit handler
+      document.getElementById('fundForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const cardId = document.getElementById('cardSelect').value;
+        const amount = Number(document.getElementById('amount').value);
+        const source = document.getElementById('source').value;
+
+        if (!cardId || amount <= 0) {
+          return alert('Please fill all fields correctly.');
+        }
+
+        if (amount < 100) {
+          return alert('Minimum funding amount is $100');
+        }
+
+        // Save fund card details globally
+        window.fundCardData = { cardId, amount, source };
+
+        // Check if user has a transfer PIN
+        const hasPIN = await checkPinStatus();
+        if (!hasPIN) {
+          openModal('createPinModal');
+        } else {
+          openModal('enterPinModal');
+        }
+      });
+
+      // Initialize
+      loadCards();
+    });
+  </script>
+</body>
+</html>
+
+
+
+ // window.verifyAndFund = async function() {
       //   const pin = document.getElementById('enterPin').value;
 
       //   if (!pin || pin.length !== 4) {
@@ -312,140 +502,49 @@
       //     alert('Network error. Please try again.');
       //   }
       // }
-      window.verifyAndFund = async function() {
-  const pin = document.getElementById("transferPin").value;
 
-  if (!pin || pin.length !== 4) {
-    return alert('Please enter your 4-digit PIN');
-  }
 
-  if (!/^\d{4}$/.test(pin)) {
-    return alert('PIN must contain only numbers');
-  }
+       // window.createPin = async function() {
+      //   const newPin = document.getElementById('newPin').value;
+      //   const confirmPin = document.getElementById('confirmPin').value;
 
-  const { cardId, amount, source } = window.fundCardData;
+      //   if (!newPin || !confirmPin) {
+      //     return alert('Please fill in both PIN fields');
+      //   }
 
-  try {
-    const submitButton = document.querySelector('#enterPinForm button[type="submit"]');
-    if (submitButton) {
-      submitButton.disabled = true;
-      submitButton.textContent = "Processing...";
-    }
+      //   if (newPin.length !== 4 || confirmPin.length !== 4) {
+      //     return alert('PIN must be exactly 4 digits');
+      //   }
 
-    const res = await fetch('https://valley.pvbonline.online/api/users/fund-card', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ cardId, amount, source, pin })
-    });
+      //   if (!/^\d{4}$/.test(newPin)) {
+      //     return alert('PIN must contain only numbers');
+      //   }
 
-    const data = await res.json();
+      //   if (newPin !== confirmPin) {
+      //     return alert('PINs do not match');
+      //   }
 
-    if (res.ok) {
-      alert('Card funded successfully! 🎉');
-      closeModal('enterPinModal');
-      window.fundCardData = null;
-      location.reload();
-    } else {
-      alert(data.message || 'Funding failed');
-      document.getElementById('transferPin').value = '';
-    }
-  } catch (error) {
-    console.error('Error funding card:', error);
-    alert('Network error. Please try again.');
-  } finally {
-    const submitButton = document.querySelector('#enterPinForm button[type="submit"]');
-    if (submitButton) {
-      submitButton.disabled = false;
-      submitButton.textContent = "Confirm";
-    }
-  }
-}
+      //   try {
+      //     const res = await fetch('https://valley.pvbonline.online/api/transaction/create-pin', {
+      //       method: 'POST',
+      //       headers: {
+      //         'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      //         'Content-Type': 'application/json'
+      //       },
+      //       body: JSON.stringify({ pin: newPin })
+      //     });
 
-      // Load user's cards
-      async function loadCards() {
-        try {
-          document.getElementById('loadingCards').style.display = 'block';
+      //     const data = await res.json();
           
-          const res = await fetch('https://valley.pvbonline.online/api/users/my-cards', {
-            headers: { 
-              'Authorization': `Bearer ${localStorage.getItem('token')}` 
-            }
-          });
-
-          const cards = await res.json();
-          document.getElementById('loadingCards').style.display = 'none';
-          const select = document.getElementById('cardSelect');
-
-          if (cards.length === 0) {
-            alert('You have no cards. Redirecting to create one...');
-            window.location.href = 'atm.html';
-            return;
-          }
-
-          cards.forEach(c => {
-            const opt = document.createElement('option');
-            opt.value = c._id;
-            opt.textContent = `${c.cardType.toUpperCase()} - ${c.cardNumber.slice(-4)} ($${c.cardBalance.toFixed(2)})`;
-            select.appendChild(opt);
-          });
-        } catch (error) {
-          document.getElementById('loadingCards').style.display = 'none';
-          console.error('Error loading cards:', error);
-          alert('Failed to load cards. Please refresh the page.');
-        }
-      }
-      
-      // Check if user has transfer PIN
-      async function checkPinStatus() {
-        try {
-          const res = await fetch('https://valley.pvbonline.online/api/users/check-pin-status', {
-            headers: { 
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
-              'Content-Type': 'application/json'
-            }
-          });
-          const data = await res.json();
-          return data.hasPin;
-        } catch (error) {
-          console.error('Error checking PIN status:', error);
-          return false;
-        }
-      }
-
-      // Form submit handler
-      document.getElementById('fundForm').addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const cardId = document.getElementById('cardSelect').value;
-        const amount = Number(document.getElementById('amount').value);
-        const source = document.getElementById('source').value;
-
-        if (!cardId || amount <= 0) {
-          return alert('Please fill all fields correctly.');
-        }
-
-        if (amount < 100) {
-          return alert('Minimum funding amount is $100');
-        }
-
-        // Save fund card details globally
-        window.fundCardData = { cardId, amount, source };
-
-        // Check if user has a transfer PIN
-        const hasPIN = await checkPinStatus();
-        if (!hasPIN) {
-          openModal('createPinModal');
-        } else {
-          openModal('enterPinModal');
-        }
-      });
-
-      // Initialize
-      loadCards();
-    });
-  </script>
-</body>
-</html>
+      //     if (res.ok) {
+      //       alert('Transfer PIN created successfully!');
+      //       closeModal('createPinModal');
+      //       openModal('enterPinModal');
+      //     } else {
+      //       alert(data.message || 'Failed to create PIN');
+      //     }
+      //   } catch (error) {
+      //     console.error('Error creating PIN:', error);
+      //     alert('Network error. Please try again.');
+      //   }
+      // }
