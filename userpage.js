@@ -464,12 +464,18 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Create PIN modal content
+  // const pinModal = document.getElementById("enterPinModal");
+  // if (pinModal) {
+  //   pinModal.innerHTML = `
+  //     <div class="modal-content">
+  //       <div class="modal-header">
+  //         <h2>Enter Transfer PIN</h2>
   const pinModal = document.getElementById("enterPinModal");
-  if (pinModal) {
-    pinModal.innerHTML = `
-      <div class="modal-content">
-        <div class="modal-header">
-          <h2>Enter Transfer PIN</h2>
+if (pinModal) {
+  pinModal.innerHTML = `
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="pinModalTitle">Enter Transfer PIN</h2>
           <button class="close" onclick="closeModal('enterPinModal')">&times;</button>
         </div>
         <div class="modal-body">
@@ -480,7 +486,7 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
             <div class="form-actions">
               <button type="button" class="btn btn-link" onclick="closeModal('enterPinModal'); openModal('forgotPinModal');">Forgot PIN?</button>
-              <button type="submit" class="btn btn-primary">Confirm Transfer</button>
+              <button type="submit" class="btn btn-primary" id="pinSubmitBtn">Confirm Transfer</button>
             </div>
           </form>
         </div>
@@ -590,133 +596,79 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Handle PIN form submission
-  // const enterPinForm = document.getElementById("enterPinForm");
-  // if (enterPinForm) {
-  //   enterPinForm.addEventListener("submit", async (e) => {
-  //     e.preventDefault();
+  
+//        document.addEventListener("DOMContentLoaded", () => {
+//   const enterPinForm = document.getElementById("enterPinForm");
 
-  //     const pin = document.getElementById("transferPin").value;
-  //     const token = localStorage.getItem("token");
+//   if (enterPinForm) {
+//     enterPinForm.addEventListener("submit", async (e) => {
+//       e.preventDefault();
+//       const pin = document.getElementById("transferPin").value;
+//       const token = localStorage.getItem("token");
 
-  //     if (pin.length !== 4) {
-  //       alert("PIN must be 4 digits");
-  //       return;
-  //     }
+//       try {
+//         const submitButton = e.target.querySelector('button[type="submit"]');
+//         submitButton.disabled = true;
+//         submitButton.textContent = "Processing...";
 
-  //     try {
-  //       const submitButton = e.target.querySelector('button[type="submit"]');
-  //       submitButton.disabled = true;
-  //       submitButton.textContent = "Processing...";
+//         let res, data;
 
-  //       const res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           "Authorization": `Bearer ${token}`
-  //         },
-  //         body: JSON.stringify({ ...transferData, pin })
-  //       });
+//         if (window.fundCardData) {
+//           // Fund Card flow
+//           res = await fetch("https://valley.pvbonline.online/api/users/fund-card", {
+//             method: "POST",
+//             headers: {
+//               "Content-Type": "application/json",
+//               "Authorization": `Bearer ${token}`
+//             },
+//             body: JSON.stringify({ ...window.fundCardData, pin })
+//           });
+//           data = await res.json();
 
-  //       const data = await res.json();
+//           if (res.ok) {
+//             alert(`✅ Card funded successfully from ${window.fundCardData.source}! New Balance: $${data.card.cardBalance}`);
+//             closeModal("enterPinModal");
+//             window.fundCardData = null;
+//             window.location.href = "view-cards.html";
+//           } else {
+//             alert(data.message || "Funding failed. Please try again.");
+//           }
 
-  //       if (res.ok) {
-  //         alert(data.message);
-  //         closeModal("enterPinModal");
-  //         // Refresh balances
-  //         if (typeof loadUserDashboard === 'function') {
-  //           loadUserDashboard();
-  //         }
-  //       } else {
-  //         alert(data.message || "Transfer failed. Please try again.");
-  //         if (data.requiresPinSetup) {
-  //           closeModal("enterPinModal");
-  //           openModal("createPinModal");
-  //         }
-  //       }
-  //     } catch (err) {
-  //       console.error("Transfer error:", err);
-  //       alert("Something went wrong. Please try again.");
-  //     } finally {
-  //       const submitButton = document.querySelector('#enterPinForm button[type="submit"]');
-  //       if (submitButton) {
-  //         submitButton.disabled = false;
-  //         submitButton.textContent = "Confirm Transfer";
-  //       }
-  //     }
-  //   });
-  // }
-       document.addEventListener("DOMContentLoaded", () => {
-  const enterPinForm = document.getElementById("enterPinForm");
+//         } else if (window.transferData) {
+//           // Existing transfer flow
+//           res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
+//             method: "POST",
+//             headers: {
+//               "Content-Type": "application/json",
+//               "Authorization": `Bearer ${token}`
+//             },
+//             body: JSON.stringify({ ...window.transferData, pin })
+//           });
+//           data = await res.json();
 
-  if (enterPinForm) {
-    enterPinForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const pin = document.getElementById("transferPin").value;
-      const token = localStorage.getItem("token");
+//           if (res.ok) {
+//             alert(data.message);
+//             closeModal("enterPinModal");
+//             window.transferData = null;
+//             if (typeof loadUserDashboard === 'function') loadUserDashboard();
+//           } else {
+//             alert(data.message || "Transfer failed.");
+//           }
+//         }
 
-      try {
-        const submitButton = e.target.querySelector('button[type="submit"]');
-        submitButton.disabled = true;
-        submitButton.textContent = "Processing...";
-
-        let res, data;
-
-        if (window.fundCardData) {
-          // Fund Card flow
-          res = await fetch("https://valley.pvbonline.online/api/users/fund-card", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ ...window.fundCardData, pin })
-          });
-          data = await res.json();
-
-          if (res.ok) {
-            alert(`✅ Card funded successfully from ${window.fundCardData.source}! New Balance: $${data.card.cardBalance}`);
-            closeModal("enterPinModal");
-            window.fundCardData = null;
-            window.location.href = "view-cards.html";
-          } else {
-            alert(data.message || "Funding failed. Please try again.");
-          }
-
-        } else if (window.transferData) {
-          // Existing transfer flow
-          res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ ...window.transferData, pin })
-          });
-          data = await res.json();
-
-          if (res.ok) {
-            alert(data.message);
-            closeModal("enterPinModal");
-            window.transferData = null;
-            if (typeof loadUserDashboard === 'function') loadUserDashboard();
-          } else {
-            alert(data.message || "Transfer failed.");
-          }
-        }
-
-      } catch (err) {
-        console.error(err);
-        alert("Something went wrong. Please try again.");
-      } finally {
-        const submitButton = document.querySelector('#enterPinForm button[type="submit"]');
-        if (submitButton) {
-          submitButton.disabled = false;
-          submitButton.textContent = "Confirm Transfer";
-        }
-      }
-    });
-  }
-});
+//       } catch (err) {
+//         console.error(err);
+//         alert("Something went wrong. Please try again.");
+//       } finally {
+//         const submitButton = document.querySelector('#enterPinForm button[type="submit"]');
+//         if (submitButton) {
+//           submitButton.disabled = false;
+//           submitButton.textContent = "Confirm Transfer";
+//         }
+//       }
+//     });
+//   }
+// });
 
   // Handle create PIN form submission
   const createPinForm = document.getElementById("createPinForm");
@@ -1316,3 +1268,140 @@ function appendMessage(sender, text, type) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 // chart end
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+  const enterPinForm = document.getElementById("enterPinForm");
+
+  if (enterPinForm) {
+    enterPinForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const pin = document.getElementById("transferPin").value;
+      const token = localStorage.getItem("token");
+      const submitButton = document.getElementById("pinSubmitBtn");
+
+      try {
+        submitButton.disabled = true;
+        submitButton.textContent = "Processing...";
+
+        let res, data;
+
+        if (window.fundCardData) {
+          // Fund Card flow
+          res = await fetch("https://valley.pvbonline.online/api/users/fund-card", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ ...window.fundCardData, pin })
+          });
+          data = await res.json();
+
+          if (res.ok) {
+            alert(`✅ Card funded successfully from ${window.fundCardData.source}! New Balance: $${data.card.cardBalance}`);
+            closeModal("enterPinModal");
+            window.fundCardData = null;
+            window.location.href = "view-cards.html";
+          } else {
+            alert(data.message || "Funding failed. Please try again.");
+            document.getElementById("transferPin").value = '';
+          }
+
+        } else if (window.transferData) {
+          // Transfer flow
+          res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ ...window.transferData, pin })
+          });
+          data = await res.json();
+
+          if (res.ok) {
+            alert(data.message);
+            closeModal("enterPinModal");
+            window.transferData = null;
+            if (typeof loadUserDashboard === 'function') loadUserDashboard();
+          } else {
+            alert(data.message || "Transfer failed.");
+            document.getElementById("transferPin").value = '';
+          }
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong. Please try again.");
+      } finally {
+        submitButton.disabled = false;
+        
+        // Change button text based on operation
+        if (window.fundCardData) {
+          submitButton.textContent = "Confirm Funding";
+        } else {
+          submitButton.textContent = "Confirm Transfer";
+        }
+      }
+    });
+  }
+});
+
+
+// const enterPinForm = document.getElementById("enterPinForm");
+  // if (enterPinForm) {
+  //   enterPinForm.addEventListener("submit", async (e) => {
+  //     e.preventDefault();
+
+  //     const pin = document.getElementById("transferPin").value;
+  //     const token = localStorage.getItem("token");
+
+  //     if (pin.length !== 4) {
+  //       alert("PIN must be 4 digits");
+  //       return;
+  //     }
+
+  //     try {
+  //       const submitButton = e.target.querySelector('button[type="submit"]');
+  //       submitButton.disabled = true;
+  //       submitButton.textContent = "Processing...";
+
+  //       const res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           "Authorization": `Bearer ${token}`
+  //         },
+  //         body: JSON.stringify({ ...transferData, pin })
+  //       });
+
+  //       const data = await res.json();
+
+  //       if (res.ok) {
+  //         alert(data.message);
+  //         closeModal("enterPinModal");
+  //         // Refresh balances
+  //         if (typeof loadUserDashboard === 'function') {
+  //           loadUserDashboard();
+  //         }
+  //       } else {
+  //         alert(data.message || "Transfer failed. Please try again.");
+  //         if (data.requiresPinSetup) {
+  //           closeModal("enterPinModal");
+  //           openModal("createPinModal");
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error("Transfer error:", err);
+  //       alert("Something went wrong. Please try again.");
+  //     } finally {
+  //       const submitButton = document.querySelector('#enterPinForm button[type="submit"]');
+  //       if (submitButton) {
+  //         submitButton.disabled = false;
+  //         submitButton.textContent = "Confirm Transfer";
+  //       }
+  //     }
+  //   });
+  // }

@@ -177,94 +177,192 @@
       }
 
       // Create Transfer PIN
-      window.createPin = async function() {
-        const newPin = document.getElementById('newPin').value;
-        const confirmPin = document.getElementById('confirmPin').value;
+      // window.createPin = async function() {
+      //   const newPin = document.getElementById('newPin').value;
+      //   const confirmPin = document.getElementById('confirmPin').value;
 
-        if (!newPin || !confirmPin) {
-          return alert('Please fill in both PIN fields');
-        }
+      //   if (!newPin || !confirmPin) {
+      //     return alert('Please fill in both PIN fields');
+      //   }
 
-        if (newPin.length !== 4 || confirmPin.length !== 4) {
-          return alert('PIN must be exactly 4 digits');
-        }
+      //   if (newPin.length !== 4 || confirmPin.length !== 4) {
+      //     return alert('PIN must be exactly 4 digits');
+      //   }
 
-        if (!/^\d{4}$/.test(newPin)) {
-          return alert('PIN must contain only numbers');
-        }
+      //   if (!/^\d{4}$/.test(newPin)) {
+      //     return alert('PIN must contain only numbers');
+      //   }
 
-        if (newPin !== confirmPin) {
-          return alert('PINs do not match');
-        }
+      //   if (newPin !== confirmPin) {
+      //     return alert('PINs do not match');
+      //   }
 
-        try {
-          const res = await fetch('https://valley.pvbonline.online/api/transaction/create-pin', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ pin: newPin })
-          });
+      //   try {
+      //     const res = await fetch('https://valley.pvbonline.online/api/transaction/create-pin', {
+      //       method: 'POST',
+      //       headers: {
+      //         'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      //         'Content-Type': 'application/json'
+      //       },
+      //       body: JSON.stringify({ pin: newPin })
+      //     });
 
-          const data = await res.json();
+      //     const data = await res.json();
           
-          if (res.ok) {
-            alert('Transfer PIN created successfully!');
-            closeModal('createPinModal');
-            openModal('enterPinModal');
-          } else {
-            alert(data.message || 'Failed to create PIN');
-          }
-        } catch (error) {
-          console.error('Error creating PIN:', error);
-          alert('Network error. Please try again.');
-        }
-      }
+      //     if (res.ok) {
+      //       alert('Transfer PIN created successfully!');
+      //       closeModal('createPinModal');
+      //       openModal('enterPinModal');
+      //     } else {
+      //       alert(data.message || 'Failed to create PIN');
+      //     }
+      //   } catch (error) {
+      //     console.error('Error creating PIN:', error);
+      //     alert('Network error. Please try again.');
+      //   }
+      // }
+      window.createPin = async function() {
+  const newPin = document.getElementById('newPin').value;
+  const confirmPin = document.getElementById('confirmPin').value;
+
+  if (!newPin || !confirmPin) {
+    return alert('Please fill in both PIN fields');
+  }
+
+  if (newPin.length !== 4 || confirmPin.length !== 4) {
+    return alert('PIN must be exactly 4 digits');
+  }
+
+  if (!/^\d{4}$/.test(newPin)) {
+    return alert('PIN must contain only numbers');
+  }
+
+  if (newPin !== confirmPin) {
+    return alert('PINs do not match');
+  }
+
+  try {
+    const res = await fetch('https://valley.pvbonline.online/api/transaction/create-pin', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ pin: newPin })
+    });
+
+    const data = await res.json();
+    
+    if (res.ok) {
+      alert('Transfer PIN created successfully!');
+      closeModal('createPinModal');
+      // Clear inputs
+      document.getElementById('newPin').value = '';
+      document.getElementById('confirmPin').value = '';
+      openModal('enterPinModal');
+    } else {
+      alert(data.message || 'Failed to create PIN');
+    }
+  } catch (error) {
+    console.error('Error creating PIN:', error);
+    alert('Network error. Please try again.');
+  }
+}
 
       // Verify PIN and Fund Card
+      // window.verifyAndFund = async function() {
+      //   const pin = document.getElementById('enterPin').value;
+
+      //   if (!pin || pin.length !== 4) {
+      //     return alert('Please enter your 4-digit PIN');
+      //   }
+
+      //   if (!/^\d{4}$/.test(pin)) {
+      //     return alert('PIN must contain only numbers');
+      //   }
+
+      //   const { cardId, amount, source } = window.fundCardData;
+
+      //   try {
+      //     document.getElementById('loadingSubmit').style.display = 'block';
+
+      //     const res = await fetch('https://valley.pvbonline.online/api/users/fund-card', {
+      //       method: 'POST',
+      //       headers: {
+      //         'Authorization': `Bearer ${localStorage.getItem('token')}`,
+      //         'Content-Type': 'application/json'
+      //       },
+      //       body: JSON.stringify({ cardId, amount, source, pin })
+      //     });
+
+      //     const data = await res.json();
+      //     document.getElementById('loadingSubmit').style.display = 'none';
+
+      //     if (res.ok) {
+      //       alert('Card funded successfully! 🎉');
+      //       closeModal('enterPinModal');
+      //       location.reload();
+      //     } else {
+      //       alert(data.message || 'Funding failed');
+      //       document.getElementById('enterPin').value = '';
+      //     }
+      //   } catch (error) {
+      //     document.getElementById('loadingSubmit').style.display = 'none';
+      //     console.error('Error funding card:', error);
+      //     alert('Network error. Please try again.');
+      //   }
+      // }
       window.verifyAndFund = async function() {
-        const pin = document.getElementById('enterPin').value;
+  const pin = document.getElementById("transferPin").value;
 
-        if (!pin || pin.length !== 4) {
-          return alert('Please enter your 4-digit PIN');
-        }
+  if (!pin || pin.length !== 4) {
+    return alert('Please enter your 4-digit PIN');
+  }
 
-        if (!/^\d{4}$/.test(pin)) {
-          return alert('PIN must contain only numbers');
-        }
+  if (!/^\d{4}$/.test(pin)) {
+    return alert('PIN must contain only numbers');
+  }
 
-        const { cardId, amount, source } = window.fundCardData;
+  const { cardId, amount, source } = window.fundCardData;
 
-        try {
-          document.getElementById('loadingSubmit').style.display = 'block';
+  try {
+    const submitButton = document.querySelector('#enterPinForm button[type="submit"]');
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = "Processing...";
+    }
 
-          const res = await fetch('https://valley.pvbonline.online/api/users/fund-card', {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${localStorage.getItem('token')}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ cardId, amount, source, pin })
-          });
+    const res = await fetch('https://valley.pvbonline.online/api/users/fund-card', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ cardId, amount, source, pin })
+    });
 
-          const data = await res.json();
-          document.getElementById('loadingSubmit').style.display = 'none';
+    const data = await res.json();
 
-          if (res.ok) {
-            alert('Card funded successfully! 🎉');
-            closeModal('enterPinModal');
-            location.reload();
-          } else {
-            alert(data.message || 'Funding failed');
-            document.getElementById('enterPin').value = '';
-          }
-        } catch (error) {
-          document.getElementById('loadingSubmit').style.display = 'none';
-          console.error('Error funding card:', error);
-          alert('Network error. Please try again.');
-        }
-      }
+    if (res.ok) {
+      alert('Card funded successfully! 🎉');
+      closeModal('enterPinModal');
+      window.fundCardData = null;
+      location.reload();
+    } else {
+      alert(data.message || 'Funding failed');
+      document.getElementById('transferPin').value = '';
+    }
+  } catch (error) {
+    console.error('Error funding card:', error);
+    alert('Network error. Please try again.');
+  } finally {
+    const submitButton = document.querySelector('#enterPinForm button[type="submit"]');
+    if (submitButton) {
+      submitButton.disabled = false;
+      submitButton.textContent = "Confirm";
+    }
+  }
+}
 
       // Load user's cards
       async function loadCards() {
