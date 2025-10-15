@@ -358,9 +358,28 @@
     <div class="chat-box">
       <div id="chatWindow" class="chat-window"></div>
       <div class="chat-input">
-        <input type="text" id="chatMessage" placeholder="Type a message...">
-        <button onclick="sendMessage()">Send</button>
-      </div>
+  <!-- Hidden file input -->
+  <input type="file" id="adminFileInput" accept="image/*,.pdf,.doc,.docx,.txt" style="display: none;" onchange="handleAdminFileSelect(event)">
+  
+  <!-- Upload button -->
+  <button class="chat-upload-btn" onclick="document.getElementById('adminFileInput').click()" title="Upload file">
+    <i class="fas fa-paperclip"></i>
+  </button>
+  
+  <input type="text" id="chatMessage" placeholder="Type a message...">
+  <button onclick="sendMessage()">Send</button>
+</div>
+
+<!-- File preview for admin -->
+<div id="adminFilePreview" style="display: none; padding: 10px; background: #f5f5f5; margin-top: 10px;">
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <img id="adminPreviewImage" style="max-width: 60px; max-height: 60px; border-radius: 5px; display: none;">
+    <div id="adminPreviewFileName" style="flex: 1;"></div>
+    <button onclick="cancelAdminFileUpload()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+      Cancel
+    </button>
+  </div>
+</div>
     </div>
   </div>
 </div>

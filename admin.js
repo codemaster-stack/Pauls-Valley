@@ -977,6 +977,152 @@ function sendMessage() {
   input.value = "";
 }
 
+// Admin file handling
+let adminSelectedFile = null;
+
+function handleAdminFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (file.size > 5 * 1024 * 1024) {
+    alert("❌ File size must be less than 5MB");
+    return;
+  }
+  
+  adminSelectedFile = file;
+  showAdminFilePreview(file);
+}
+
+function showAdminFilePreview(file) {
+  const previewDiv = document.getElementById("adminFilePreview");
+  const previewImage = document.getElementById("adminPreviewImage");
+  const previewFileName = document.getElementById("adminPreviewFileName");
+  
+  previewDiv.style.display = "block";
+  previewFileName.textContent = file.name;
+  
+  if (file.type.startsWith("image/")) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewImage.src = e.target.result;
+      previewImage.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  } else {
+    previewImage.style.display = "none";
+  }
+}
+
+function cancelAdminFileUpload() {
+  adminSelectedFile = null;
+  document.getElementById("adminFilePreview").style.display = "none";
+  document.getElementById("adminFileInput").value = "";
+}
+
+// UPDATE sendMessage function
+function sendMessage() {
+  if (!selectedVisitorId) {
+    alert("Please select a user first.");
+    return;
+  }
+
+  const input = document.getElementById("chatMessage");
+  const message = input.value.trim();
+  
+  // Handle file upload
+  if (adminSelectedFile) {
+    sendAdminFileMessage(adminSelectedFile, message);
+    return;
+  }
+  
+  if (!message) return;
+
+  socket.emit("adminTyping", { visitorId: selectedVisitorId, typing: false });
+  clearTimeout(typingTimeout);
+
+  socket.emit("adminMessage", { 
+    visitorId: selectedVisitorId, 
+    text: message,
+    adminEmail: localStorage.getItem("adminEmail"),
+    adminName: localStorage.getItem("adminUsername")
+  });
+
+  appendMessage("Admin", message);
+  
+  if (!chatHistory[selectedVisitorId]) {
+    chatHistory[selectedVisitorId] = [];
+  }
+  chatHistory[selectedVisitorId].push({
+    sender: "Admin",
+    text: message,
+    html: `<strong>Admin:</strong> ${message}`,
+    timestamp: Date.now()
+  });
+  saveAllChatHistory();
+  
+  input.value = "";
+}
+
+function sendAdminFileMessage(file, caption) {
+  const reader = new FileReader();
+  
+  reader.onload = () => {
+    const fileData = {
+      visitorId: selectedVisitorId,
+      fileName: file.name,
+      fileType: file.type,
+      fileData: reader.result,
+      caption: caption || "",
+      timestamp: Date.now()
+    };
+    
+    socket.emit("adminFileMessage", fileData);
+    
+    appendAdminFileMessage("Admin", file.name, reader.result, file.type, caption);
+    
+    document.getElementById("chatMessage").value = "";
+    cancelAdminFileUpload();
+  };
+  
+  reader.readAsDataURL(file);
+}
+
+function appendAdminFileMessage(sender, fileName, fileData, fileType, caption) {
+  const chatWindow = document.getElementById("chatWindow");
+  const msgDiv = document.createElement("div");
+  msgDiv.className = "chat-message";
+  msgDiv.style.padding = "8px";
+  msgDiv.style.marginBottom = "5px";
+  
+  let filePreview = "";
+  
+  if (fileType.startsWith("image/")) {
+    filePreview = `<img src="${fileData}" alt="${fileName}" style="max-width: 200px; border-radius: 8px; margin-top: 5px; cursor: pointer;" onclick="window.open('${fileData}', '_blank')">`;
+  } else {
+    filePreview = `
+      <a href="${fileData}" download="${fileName}" style="display: inline-block; padding: 10px; background: #e3f2fd; border-radius: 8px; margin-top: 5px; text-decoration: none;">
+        <i class="fas fa-file-alt"></i> ${fileName}
+      </a>
+    `;
+  }
+  
+  msgDiv.innerHTML = `
+    <strong>${sender}:</strong> 
+    ${caption ? `<div>${caption}</div>` : ''}
+    ${filePreview}
+  `;
+  
+  chatWindow.appendChild(msgDiv);
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
+
+// Listen for file messages from visitors
+socket.on("visitorFileMessage", (data) => {
+  if (data.visitorId === selectedVisitorId) {
+    appendAdminFileMessage("User", data.fileName, data.fileData, data.fileType, data.caption);
+  }
+});
+
 // Receive visitor messages
 socket.on("chatMessage", (data) => {
   console.log("📨 Received message:", data);

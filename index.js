@@ -666,7 +666,143 @@ function appendMessage(sender, text, type) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
+// Store selected file
+let selectedFile = null;
 
+// Handle file selection
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  // Validate file size (max 5MB)
+  if (file.size > 5 * 1024 * 1024) {
+    alert("❌ File size must be less than 5MB");
+    return;
+  }
+  
+  selectedFile = file;
+  showFilePreview(file);
+}
+
+// Show file preview
+function showFilePreview(file) {
+  const previewDiv = document.getElementById("filePreview");
+  const previewImage = document.getElementById("previewImage");
+  const previewFileName = document.getElementById("previewFileName");
+  
+  previewDiv.style.display = "block";
+  previewFileName.textContent = file.name;
+  
+  // Show image preview if it's an image
+  if (file.type.startsWith("image/")) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewImage.src = e.target.result;
+      previewImage.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  } else {
+    previewImage.style.display = "none";
+  }
+}
+
+// Cancel file upload
+function cancelFileUpload() {
+  selectedFile = null;
+  document.getElementById("filePreview").style.display = "none";
+  document.getElementById("chatFileInput").value = "";
+}
+
+// UPDATE sendChatMessage function to handle files
+function sendChatMessage() {
+  const input = document.getElementById("chatInput");
+  const msg = input.value.trim();
+  
+  // Check if there's a file to send
+  if (selectedFile) {
+    sendFileMessage(selectedFile, msg);
+    return;
+  }
+  
+  // Regular text message
+  if (!msg) return;
+  
+  socket.emit("visitorTyping", { typing: false });
+  clearTimeout(typingTimeout);
+  
+  socket.emit("visitorMessage", { visitorId, text: msg });
+  appendMessage("You", msg, "visitor");
+  input.value = "";
+}
+
+// Send file via socket
+function sendFileMessage(file, caption) {
+  const reader = new FileReader();
+  
+  reader.onload = () => {
+    const fileData = {
+      visitorId: visitorId,
+      fileName: file.name,
+      fileType: file.type,
+      fileData: reader.result, // Base64 data
+      caption: caption || "",
+      timestamp: Date.now()
+    };
+    
+    // Emit file message
+    socket.emit("visitorFileMessage", fileData);
+    
+    // Display in chat
+    appendFileMessage("You", file.name, reader.result, file.type, caption, "visitor");
+    
+    // Clear input and preview
+    document.getElementById("chatInput").value = "";
+    cancelFileUpload();
+  };
+  
+  reader.readAsDataURL(file);
+}
+
+// Append file message to chat
+function appendFileMessage(sender, fileName, fileData, fileType, caption, type) {
+  const chatBox = document.getElementById("chatMessages");
+  const msgDiv = document.createElement("div");
+  msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
+  
+  let filePreview = "";
+  
+  // Show image preview
+  if (fileType.startsWith("image/")) {
+    filePreview = `<img src="${fileData}" alt="${fileName}" style="max-width: 200px; border-radius: 8px; margin-top: 5px; cursor: pointer;" onclick="window.open('${fileData}', '_blank')">`;
+  } else {
+    // Show file icon for documents
+    filePreview = `
+      <a href="${fileData}" download="${fileName}" style="display: inline-block; padding: 10px; background: #e3f2fd; border-radius: 8px; margin-top: 5px; text-decoration: none; color: #1976d2;">
+        <i class="fas fa-file-alt"></i> ${fileName}
+      </a>
+    `;
+  }
+  
+  msgDiv.innerHTML = `
+    <div class="message-avatar">
+      <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
+    </div>
+    <div class="message-content">
+      <div class="message-header">${sender}</div>
+      ${caption ? `<div class="message-text">${caption}</div>` : ''}
+      ${filePreview}
+      <div class="message-time">${new Date().toLocaleTimeString()}</div>
+    </div>
+  `;
+  
+  chatBox.appendChild(msgDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Listen for file messages from admin
+socket.on("adminFileMessage", (data) => {
+  appendFileMessage("Support", data.fileName, data.fileData, data.fileType, data.caption, "admin");
+});
   
   //  hamburger menu code
 const hamburger = document.querySelector('.open-mobilemenu');
