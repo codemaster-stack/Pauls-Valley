@@ -1247,7 +1247,7 @@ document.addEventListener('DOMContentLoaded', () => {
                       const pendingCards = result.pending || cards.filter(card => !card.isApproved).length;
                       const approvedCards = result.approved || cards.filter(card => card.isApproved).length;
                       const activeCards = result.active || cards.filter(card => card.isActive).length;
-                      Use backend stats if available, otherwise calculate
+                      // Use backend stats if available, otherwise calculate
 
                     document.getElementById('totalCards').textContent = totalCards;
                     document.getElementById('pendingCards').textContent = pendingCards;
