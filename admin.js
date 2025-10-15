@@ -111,7 +111,7 @@ document.addEventListener("DOMContentLoaded", () => {
  
 document.addEventListener("DOMContentLoaded", () => {
   // const BACKEND_URL = "https://api.pvbonline.online";
-const adminToken = localStorage.getItem("token");
+const adminToken = localStorage.getItem("adminToken");
   // Show message helper
   function showMessage(message, type = 'success') {
     const messageDiv = document.createElement('div');
@@ -568,6 +568,10 @@ if (sendEmailForm) {
     }
   });
 }
+if (document.getElementById('cardManagement')) {
+    initializeCardManagement();
+  }
+  loadWalletBalance();
 });
 
 
