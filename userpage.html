@@ -682,11 +682,31 @@
       <div class="chat-container">
         <div id="chatMessages" class="chat-messages"></div>
         <div class="chat-input-container">
-          <input type="text" id="chatInput" placeholder="Type your message..." onkeypress="handleChatKeyPress(event)">
-          <button class="chat-send-btn" onclick="sendChatMessage()">
-            <i class="fas fa-paper-plane"></i>
-          </button>
-        </div>
+  <!-- Hidden file input -->
+  <input type="file" id="chatFileInput" accept="image/*,.pdf,.doc,.docx,.txt" style="display: none;" onchange="handleFileSelect(event)">
+  
+  <!-- Upload button -->
+  <button class="chat-upload-btn" onclick="document.getElementById('chatFileInput').click()" title="Upload file">
+    <i class="fas fa-paperclip"></i>
+  </button>
+  
+  <input type="text" id="chatInput" placeholder="Type your message..." onkeypress="handleChatKeyPress(event)">
+  
+  <button class="chat-send-btn" onclick="sendChatMessage()">
+    <i class="fas fa-paper-plane"></i>
+  </button>
+</div>
+
+<!-- File preview area (add this above chat-input-container) -->
+<div id="filePreview" style="display: none; padding: 10px; background: #f5f5f5; border-top: 1px solid #ddd;">
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <img id="previewImage" style="max-width: 60px; max-height: 60px; border-radius: 5px; display: none;">
+    <div id="previewFileName" style="flex: 1; font-size: 14px; color: #333;"></div>
+    <button onclick="cancelFileUpload()" style="background: #dc3545; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer;">
+      <i class="fas fa-times"></i> Cancel
+    </button>
+  </div>
+</div>
       </div>
     </div>
   </div>
