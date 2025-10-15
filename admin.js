@@ -1180,7 +1180,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Load approved cards
         async function loadApprovedCards() {
             try {
-                const response = await fetch(`${BACKEND_URL}/api/admin/all-cards?status=approved`, {
+                // const response = await fetch(`${BACKEND_URL}/api/admin/all-cards?status=approved`, {
+                const response = await fetch(`${BACKEND_URL}/api/admin/all-cards?isApproved=true`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('adminToken')}`
                     }
@@ -1233,10 +1234,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 if (response.ok) {
                     const cards = result.cards;
-                    const totalCards = cards.length;
-                    const pendingCards = cards.filter(card => card.status === 'pending').length;
-                    const approvedCards = cards.filter(card => card.status === 'approved').length;
-                    const activeCards = cards.filter(card => card.status === 'approved' && card.isActive).length;
+                    // const totalCards = cards.length;
+                    // const pendingCards = cards.filter(card => card.status === 'pending').length;
+                    // const approvedCards = cards.filter(card => card.status === 'approved').length;
+                    // const activeCards = cards.filter(card => card.status === 'approved' && card.isActive).length;
+                    // Use backend stats if available, otherwise calculate
+                      const totalCards = result.total || cards.length;
+                      const pendingCards = result.pending || cards.filter(card => !card.isApproved).length;
+                      const approvedCards = result.approved || cards.filter(card => card.isApproved).length;
+                      const activeCards = result.active || cards.filter(card => card.isActive).length;
+                      Use backend stats if available, otherwise calculate
 
                     document.getElementById('totalCards').textContent = totalCards;
                     document.getElementById('pendingCards').textContent = pendingCards;
@@ -1269,7 +1276,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <h3>${card.userId.fullname}</h3>
                             <p>${card.userId.email}</p>
                         </div>
-                        <span class="status-badge pending">${card.status}</span>
+                        <span class="status-badge pending">${card.isApproved ? 'Approved' : 'Pending'}</span>
                     </div>
                     
                     <div class="card-details">
@@ -1339,7 +1346,7 @@ function displayApprovedCards(cards) {
                     <p>${email}</p>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <span class="status-badge approved">${card.status}</span>
+                    <span class="status-badge approved">${card.isApproved ? 'Approved' : 'Pending'}</span>
                     <span class="status-badge ${card.isActive ? 'approved' : 'rejected'}">
                         ${card.isActive ? 'Active' : 'Inactive'}
                     </span>
@@ -1410,8 +1417,8 @@ function displayAllCards(cards) {
                     <p>${email}</p>
                 </div>
                 <div style="display: flex; gap: 10px; align-items: center;">
-                    <span class="status-badge ${card.status}">${card.status}</span>
-                    ${card.status === 'approved' ? `
+                   <span class="status-badge ${card.isApproved ? 'approved' : 'pending'}">${card.isApproved ? 'Approved' : 'Pending'}</span>
+                    ${card.isApproved ? `
                         <span class="status-badge ${card.isActive ? 'approved' : 'rejected'}">
                             ${card.isActive ? 'Active' : 'Inactive'}
                         </span>
@@ -1453,10 +1460,10 @@ function displayAllCards(cards) {
             </div>
             
             <div class="card-actions">
-                ${card.status === 'pending' ? `
-                    <button class="btn btn-approve" onclick="approveCard('${card._id}')">✅ Approve</button>
-                    <button class="btn btn-reject" onclick="openRejectionModal('${card._id}')">❌ Reject</button>
-                ` : card.status === 'approved' ? `
+                ${!card.isApproved ? `
+               <button class="btn btn-approve" onclick="approveCard('${card._id}')">✅ Approve</button>
+               <button class="btn btn-reject" onclick="openRejectionModal('${card._id}')">❌ Reject</button>
+               ` : card.isApproved ? `
                     ${card.isActive 
                         ? `<button class="btn btn-deactivate" onclick="deactivateCard('${card._id}')">🚫 Deactivate</button>`
                         : `<button class="btn btn-reactivate" onclick="reactivateCard('${card._id}')">✅ Reactivate</button>`
@@ -1557,11 +1564,12 @@ function displayAllCards(cards) {
             }
         }
                 // Filter approved cards
-        function filterCards() {
+            function filterCards() {
             const statusFilter = document.getElementById('statusFilter').value;
             const cardTypeFilter = document.getElementById('cardTypeFilter').value;
             
-            let url = `${BACKEND_URL}/api/admin/all-cards?status=approved`;
+            // let url = `${BACKEND_URL}/api/admin/all-cards?status=approved`;
+            let url = `${BACKEND_URL}/api/admin/all-cards?isApproved=true`;
             
             if (statusFilter !== '') {
                 url += `&isActive=${statusFilter}`;
@@ -1586,17 +1594,24 @@ function displayAllCards(cards) {
         }
 
         // Filter all cards
-        function filterAllCards() {
+            function filterAllCards() {
             const statusFilter = document.getElementById('allStatusFilter').value;
             const activeFilter = document.getElementById('allActiveFilter').value;
             const cardTypeFilter = document.getElementById('allCardTypeFilter').value;
             
             let filteredCards = [...allCardsData];
             
+            // if (statusFilter) {
+            //     filteredCards = filteredCards.filter(card => card.status === statusFilter);
+            // }
             if (statusFilter) {
-                filteredCards = filteredCards.filter(card => card.status === statusFilter);
+           if (statusFilter === 'pending') {
+            filteredCards = filteredCards.filter(card => !card.isApproved);
+           } else if (statusFilter === 'approved') {
+          filteredCards = filteredCards.filter(card => card.isApproved);
+          }
             }
-            
+
             if (activeFilter !== '') {
                 filteredCards = filteredCards.filter(card => card.isActive === (activeFilter === 'true'));
             }
