@@ -1505,6 +1505,16 @@ function appendMessage(sender, text, type) {
   chatBox.appendChild(msgDiv);
   chatBox.scrollTop = chatBox.scrollHeight;
 }
+
+// Make functions globally available (add at the END of your chat.js file)
+if (typeof window !== 'undefined') {
+  window.openChatModal = openChatModal;
+  window.closeChatModal = closeChatModal;
+  window.handleChatKeyPress = handleChatKeyPress;
+  window.sendChatMessage = sendChatMessage;
+  window.handleFileSelect = handleFileSelect;
+  window.cancelFileUpload = cancelFileUpload;
+}
 // chart end
 
 
