@@ -1050,6 +1050,474 @@ mobileNavItems.forEach(item => {
 // const visitorId = "visitor_" + Date.now();
 // chart
 
+// const socket = io("https://valley.pvbonline.online", {
+//   transports: ["websocket"],
+//   withCredentials: true
+// });
+
+// // ✅ Get logged-in user info from token/localStorage
+// let loggedInUser = {
+//   email: null,
+//   name: null,
+//   id: null
+// };
+
+// // ✅ Fetch user data and set visitorId
+// async function initializeChat() {
+//   try {
+//     const token = localStorage.getItem("token");
+//     if (token) {
+//       const res = await fetch("https://valley.pvbonline.online/api/users/me", {
+//         headers: { "Authorization": `Bearer ${token}` }
+//       });
+      
+//       if (res.ok) {
+//         const userData = await res.json();
+//         loggedInUser = {
+//           email: userData.email,
+//           name: userData.fullname,
+//           id: userData._id
+//         };
+//         console.log("✅ Logged-in user:", loggedInUser);
+//       }
+//     }
+//   } catch (err) {
+//     console.error("Error fetching user data:", err);
+//   }
+// }
+
+// // ✅ Use email as visitorId if logged in, otherwise use timestamp
+// const getVisitorId = () => loggedInUser.email || "visitor_" + Date.now();
+// let visitorId = getVisitorId();
+
+// // Initialize chat when page loads
+// initializeChat().then(() => {
+//   visitorId = getVisitorId(); // Update visitorId after fetching user data
+//   if (socket.connected) {
+//     socket.emit("joinVisitor", visitorId);
+//   }
+// });
+
+// socket.on("connect", () => {
+//   visitorId = getVisitorId(); // Ensure we have latest user info
+//   socket.emit("joinVisitor", visitorId);
+//   document.getElementById("chatStatusText").innerText = "Connected";
+//   document.querySelector(".chat-status-dot").style.background = "green";
+//   console.log("📞 Connected as:", visitorId);
+// });
+
+// socket.on("disconnect", () => {
+//   document.getElementById("chatStatusText").innerText = "Disconnected";
+//   document.querySelector(".chat-status-dot").style.background = "red";
+// });
+
+// // Receive message from admin
+// socket.on("chatMessage", (data) => {
+//   appendMessage(
+//     data.sender === "admin" ? "Support" : "You",
+//     data.text,
+//     data.sender
+//   );
+// });
+
+// // ✅ NEW: Listen for file messages from admin
+// socket.on("adminFileMessage", (data) => {
+//   appendFileMessage("Support", data.fileName, data.fileData, data.fileType, data.caption, "admin");
+// });
+
+// // ✨ Listen for admin typing notification
+// socket.on("adminTyping", (data) => {
+//   showAdminTypingIndicator(data.typing);
+// });
+
+// // ✨ Typing indicator handling
+// let typingTimeout;
+// const chatInput = document.getElementById("chatInput");
+
+// if (chatInput) {
+//   chatInput.addEventListener("input", () => {
+//     socket.emit("visitorTyping", { typing: true });
+//     clearTimeout(typingTimeout);
+//     typingTimeout = setTimeout(() => {
+//       socket.emit("visitorTyping", { typing: false });
+//     }, 2000);
+//   });
+// }
+
+// // ✨ Show admin typing indicator
+// function showAdminTypingIndicator(isTyping) {
+//   const chatBox = document.getElementById("chatMessages");
+//   let typingDiv = document.getElementById("admin-typing-indicator");
+  
+//   if (isTyping) {
+//     if (!typingDiv) {
+//       typingDiv = document.createElement("div");
+//       typingDiv.id = "admin-typing-indicator";
+//       typingDiv.classList.add("message", "agent-message");
+//       typingDiv.innerHTML = `
+//         <div class="message-avatar">
+//           <i class="fas fa-user-tie"></i>
+//         </div>
+//         <div class="message-content">
+//           <div class="message-text" style="font-style: italic; color: #666;">
+//             Support is typing<span class="dots">...</span>
+//           </div>
+//         </div>
+//       `;
+//       chatBox.appendChild(typingDiv);
+//       animateTypingDots();
+//     }
+//   } else {
+//     if (typingDiv) {
+//       typingDiv.remove();
+//     }
+//   }
+  
+//   chatBox.scrollTop = chatBox.scrollHeight;
+// }
+
+// // ✨ Animate typing dots
+// function animateTypingDots() {
+//   const dotsSpan = document.querySelector("#admin-typing-indicator .dots");
+//   if (!dotsSpan) return;
+  
+//   let dotCount = 0;
+//   const interval = setInterval(() => {
+//     if (!document.getElementById("admin-typing-indicator")) {
+//       clearInterval(interval);
+//       return;
+//     }
+//     dotCount = (dotCount + 1) % 4;
+//     dotsSpan.textContent = ".".repeat(dotCount);
+//   }, 500);
+// }
+
+// // --- Open chat modal ---
+// function openChatModal() {
+//   document.getElementById("chatModal").style.display = "block";
+// }
+
+// // --- Close chat modal ---
+// function closeChatModal() {
+//   document.getElementById("chatModal").style.display = "none";
+// }
+
+// // ✅ NEW: Store selected file
+// let selectedFile = null;
+
+// // ✅ NEW: Handle file selection
+// function handleFileSelect(event) {
+//   const file = event.target.files[0];
+//   if (!file) return;
+  
+//   if (file.size > 5 * 1024 * 1024) {
+//     alert("❌ File size must be less than 5MB");
+//     return;
+//   }
+  
+//   selectedFile = file;
+//   showFilePreview(file);
+// }
+
+// // ✅ NEW: Show file preview
+// function showFilePreview(file) {
+//   const previewDiv = document.getElementById("filePreview");
+//   const previewImage = document.getElementById("previewImage");
+//   const previewFileName = document.getElementById("previewFileName");
+  
+//   previewDiv.style.display = "block";
+//   previewFileName.textContent = file.name;
+  
+//   if (file.type.startsWith("image/")) {
+//     const reader = new FileReader();
+//     reader.onload = (e) => {
+//       previewImage.src = e.target.result;
+//       previewImage.style.display = "block";
+//     };
+//     reader.readAsDataURL(file);
+//   } else {
+//     previewImage.style.display = "none";
+//   }
+// }
+
+// // ✅ NEW: Cancel file upload
+// function cancelFileUpload() {
+//   selectedFile = null;
+//   document.getElementById("filePreview").style.display = "none";
+//   document.getElementById("chatFileInput").value = "";
+// }
+
+// // --- Send message from visitor to admin ---
+// function sendChatMessage() {
+//   const input = document.getElementById("chatInput");
+//   const msg = input.value.trim();
+  
+//   // ✅ Check if there's a file to send
+//   if (selectedFile) {
+//     sendFileMessage(selectedFile, msg);
+//     return;
+//   }
+  
+//   if (!msg) return;
+
+//   socket.emit("visitorTyping", { typing: false });
+//   clearTimeout(typingTimeout);
+
+//   // ✅ Send with user info if logged in
+//   socket.emit("visitorMessage", { 
+//     visitorId: getVisitorId(),
+//     text: msg,
+//     visitorName: loggedInUser.name || "User",
+//     visitorEmail: loggedInUser.email || visitorId
+//   });
+  
+//   appendMessage("You", msg, "visitor");
+//   input.value = "";
+// }
+
+// // ✅ NEW: Send file via socket
+// function sendFileMessage(file, caption) {
+//   const reader = new FileReader();
+  
+//   reader.onload = () => {
+//     const fileData = {
+//       visitorId: getVisitorId(),
+//       fileName: file.name,
+//       fileType: file.type,
+//       fileData: reader.result,
+//       caption: caption || "",
+//       timestamp: Date.now()
+//     };
+    
+//     socket.emit("visitorFileMessage", fileData);
+//     appendFileMessage("You", file.name, reader.result, file.type, caption, "visitor");
+    
+//     document.getElementById("chatInput").value = "";
+//     cancelFileUpload();
+//   };
+  
+//   reader.readAsDataURL(file);
+// }
+
+// // ✅ NEW: Append file message to chat
+// function appendFileMessage(sender, fileName, fileData, fileType, caption, type) {
+//   const chatBox = document.getElementById("chatMessages");
+//   const msgDiv = document.createElement("div");
+//   msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
+  
+//   let filePreview = "";
+  
+//   if (fileType.startsWith("image/")) {
+//     filePreview = `<img src="${fileData}" alt="${fileName}" style="max-width: 200px; border-radius: 8px; margin-top: 5px; cursor: pointer;" onclick="window.open('${fileData}', '_blank')">`;
+//   } else {
+//     filePreview = `
+//       <a href="${fileData}" download="${fileName}" style="display: inline-block; padding: 10px; background: #e3f2fd; border-radius: 8px; margin-top: 5px; text-decoration: none; color: #1976d2;">
+//         <i class="fas fa-file-alt"></i> ${fileName}
+//       </a>
+//     `;
+//   }
+  
+//   msgDiv.innerHTML = `
+//     <div class="message-avatar">
+//       <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
+//     </div>
+//     <div class="message-content">
+//       <div class="message-header">${sender}</div>
+//       ${caption ? `<div class="message-text">${caption}</div>` : ''}
+//       ${filePreview}
+//       <div class="message-time">${new Date().toLocaleTimeString()}</div>
+//     </div>
+//   `;
+  
+//   chatBox.appendChild(msgDiv);
+//   chatBox.scrollTop = chatBox.scrollHeight;
+// }
+
+// // --- Press Enter to send ---
+// function handleChatKeyPress(e) {
+//   if (e.key === "Enter") {
+//     sendChatMessage();
+//   }
+// }
+
+// // --- Append message to chat window ---
+// function appendMessage(sender, text, type) {
+//   const chatBox = document.getElementById("chatMessages");
+//   const msgDiv = document.createElement("div");
+//   msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
+//   msgDiv.innerHTML = `
+//     <div class="message-avatar">
+//       <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
+//     </div>
+//     <div class="message-content">
+//       <div class="message-header">${sender}</div>
+//       <div class="message-text">${text}</div>
+//       <div class="message-time">${new Date().toLocaleTimeString()}</div>
+//     </div>
+//   `;
+//   chatBox.appendChild(msgDiv);
+//   chatBox.scrollTop = chatBox.scrollHeight;
+// }
+// // chart end
+
+// socket.on("connect", () => {
+//   socket.emit("joinVisitor", visitorId);
+//   document.getElementById("chatStatusText").innerText = "Connected";
+//   document.querySelector(".chat-status-dot").style.background = "green";
+// });
+
+// socket.on("disconnect", () => {
+//   document.getElementById("chatStatusText").innerText = "Disconnected";
+//   document.querySelector(".chat-status-dot").style.background = "red";
+// });
+
+// // Receive message from admin
+// socket.on("chatMessage", (data) => {
+//   appendMessage(
+//     data.sender === "admin" ? "Support" : "You",
+//     data.text,
+//     data.sender
+//   );
+// });
+
+// // ✨ NEW: Listen for admin typing notification
+// socket.on("adminTyping", (data) => {
+//   showAdminTypingIndicator(data.typing);
+// });
+
+// // ✨ NEW: Typing indicator handling
+// let typingTimeout;
+// const chatInput = document.getElementById("chatInput");
+
+// if (chatInput) {
+//   chatInput.addEventListener("input", () => {
+//     // Emit typing event to server
+//     socket.emit("visitorTyping", { typing: true });
+    
+//     // Clear previous timeout
+//     clearTimeout(typingTimeout);
+    
+//     // Stop typing after 2 seconds of inactivity
+//     typingTimeout = setTimeout(() => {
+//       socket.emit("visitorTyping", { typing: false });
+//     }, 2000);
+//   });
+// }
+
+// // ✨ NEW: Show admin typing indicator
+// function showAdminTypingIndicator(isTyping) {
+//   const chatBox = document.getElementById("chatMessages");
+//   let typingDiv = document.getElementById("admin-typing-indicator");
+  
+//   if (isTyping) {
+//     if (!typingDiv) {
+//       typingDiv = document.createElement("div");
+//       typingDiv.id = "admin-typing-indicator";
+//       typingDiv.classList.add("message", "agent-message");
+//       typingDiv.innerHTML = `
+//         <div class="message-avatar">
+//           <i class="fas fa-user-tie"></i>
+//         </div>
+//         <div class="message-content">
+//           <div class="message-text" style="font-style: italic; color: #666;">
+//             Support is typing<span class="dots">...</span>
+//           </div>
+//         </div>
+//       `;
+//       chatBox.appendChild(typingDiv);
+      
+//       // Animate dots
+//       animateTypingDots();
+//     }
+//   } else {
+//     if (typingDiv) {
+//       typingDiv.remove();
+//     }
+//   }
+  
+//   // Auto-scroll to bottom
+//   chatBox.scrollTop = chatBox.scrollHeight;
+// }
+
+// // ✨ NEW: Animate typing dots
+// function animateTypingDots() {
+//   const dotsSpan = document.querySelector("#admin-typing-indicator .dots");
+//   if (!dotsSpan) return;
+  
+//   let dotCount = 0;
+//   const interval = setInterval(() => {
+//     if (!document.getElementById("admin-typing-indicator")) {
+//       clearInterval(interval);
+//       return;
+//     }
+//     dotCount = (dotCount + 1) % 4;
+//     dotsSpan.textContent = ".".repeat(dotCount);
+//   }, 500);
+// }
+
+// // --- Open chat modal ---
+// function openChatModal() {
+//   document.getElementById("chatModal").style.display = "block";
+// }
+
+// // --- Close chat modal ---
+// function closeChatModal() {
+//   document.getElementById("chatModal").style.display = "none";
+// }
+
+// // --- Send message from visitor to admin ---
+// function sendChatMessage() {
+//   const input = document.getElementById("chatInput");
+//   const msg = input.value.trim();
+//   if (!msg) return;
+
+//   // ✨ NEW: Clear typing indicator when sending message
+//   socket.emit("visitorTyping", { typing: false });
+//   clearTimeout(typingTimeout);
+
+//   socket.emit("visitorMessage", { visitorId, text: msg });
+//   appendMessage("You", msg, "visitor");
+//   input.value = "";
+// }
+
+// // --- Press Enter to send ---
+// function handleChatKeyPress(e) {
+//   if (e.key === "Enter") {
+//     sendChatMessage();
+//   }
+// }
+
+// // --- Append message to chat window ---
+// function appendMessage(sender, text, type) {
+//   const chatBox = document.getElementById("chatMessages");
+//   const msgDiv = document.createElement("div");
+//   msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
+//   msgDiv.innerHTML = `
+//     <div class="message-avatar">
+//       <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
+//     </div>
+//     <div class="message-content">
+//       <div class="message-header">${sender}</div>
+//       <div class="message-text">${text}</div>
+//       <div class="message-time">${new Date().toLocaleTimeString()}</div>
+//     </div>
+//   `;
+//   chatBox.appendChild(msgDiv);
+//   chatBox.scrollTop = chatBox.scrollHeight;
+// }
+
+// // Make functions globally available (add at the END of your chat.js file)
+// if (typeof window !== 'undefined') {
+//   window.openChatModal = openChatModal;
+//   window.closeChatModal = closeChatModal;
+//   window.handleChatKeyPress = handleChatKeyPress;
+//   window.sendChatMessage = sendChatMessage;
+//   window.handleFileSelect = handleFileSelect;
+//   window.cancelFileUpload = cancelFileUpload;
+// }
+
+// ==================== CHAT SECTION START ====================
+
 const socket = io("https://valley.pvbonline.online", {
   transports: ["websocket"],
   withCredentials: true
@@ -1101,14 +1569,18 @@ initializeChat().then(() => {
 socket.on("connect", () => {
   visitorId = getVisitorId(); // Ensure we have latest user info
   socket.emit("joinVisitor", visitorId);
-  document.getElementById("chatStatusText").innerText = "Connected";
-  document.querySelector(".chat-status-dot").style.background = "green";
+  const statusText = document.getElementById("chatStatusText");
+  const statusDot = document.querySelector(".chat-status-dot");
+  if (statusText) statusText.innerText = "Connected";
+  if (statusDot) statusDot.style.background = "green";
   console.log("📞 Connected as:", visitorId);
 });
 
 socket.on("disconnect", () => {
-  document.getElementById("chatStatusText").innerText = "Disconnected";
-  document.querySelector(".chat-status-dot").style.background = "red";
+  const statusText = document.getElementById("chatStatusText");
+  const statusDot = document.querySelector(".chat-status-dot");
+  if (statusText) statusText.innerText = "Disconnected";
+  if (statusDot) statusDot.style.background = "red";
 });
 
 // Receive message from admin
@@ -1120,7 +1592,7 @@ socket.on("chatMessage", (data) => {
   );
 });
 
-// ✅ NEW: Listen for file messages from admin
+// ✅ Listen for file messages from admin
 socket.on("adminFileMessage", (data) => {
   appendFileMessage("Support", data.fileName, data.fileData, data.fileType, data.caption, "admin");
 });
@@ -1132,21 +1604,26 @@ socket.on("adminTyping", (data) => {
 
 // ✨ Typing indicator handling
 let typingTimeout;
-const chatInput = document.getElementById("chatInput");
 
-if (chatInput) {
-  chatInput.addEventListener("input", () => {
-    socket.emit("visitorTyping", { typing: true });
-    clearTimeout(typingTimeout);
-    typingTimeout = setTimeout(() => {
-      socket.emit("visitorTyping", { typing: false });
-    }, 2000);
-  });
-}
+// Wait for DOM to be ready before accessing chatInput
+document.addEventListener("DOMContentLoaded", () => {
+  const chatInput = document.getElementById("chatInput");
+  if (chatInput) {
+    chatInput.addEventListener("input", () => {
+      socket.emit("visitorTyping", { typing: true });
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        socket.emit("visitorTyping", { typing: false });
+      }, 2000);
+    });
+  }
+});
 
 // ✨ Show admin typing indicator
 function showAdminTypingIndicator(isTyping) {
   const chatBox = document.getElementById("chatMessages");
+  if (!chatBox) return;
+  
   let typingDiv = document.getElementById("admin-typing-indicator");
   
   if (isTyping) {
@@ -1194,18 +1671,20 @@ function animateTypingDots() {
 
 // --- Open chat modal ---
 function openChatModal() {
-  document.getElementById("chatModal").style.display = "block";
+  const modal = document.getElementById("chatModal");
+  if (modal) modal.style.display = "block";
 }
 
 // --- Close chat modal ---
 function closeChatModal() {
-  document.getElementById("chatModal").style.display = "none";
+  const modal = document.getElementById("chatModal");
+  if (modal) modal.style.display = "none";
 }
 
-// ✅ NEW: Store selected file
+// ✅ Store selected file
 let selectedFile = null;
 
-// ✅ NEW: Handle file selection
+// ✅ Handle file selection
 function handleFileSelect(event) {
   const file = event.target.files[0];
   if (!file) return;
@@ -1219,37 +1698,43 @@ function handleFileSelect(event) {
   showFilePreview(file);
 }
 
-// ✅ NEW: Show file preview
+// ✅ Show file preview
 function showFilePreview(file) {
   const previewDiv = document.getElementById("filePreview");
   const previewImage = document.getElementById("previewImage");
   const previewFileName = document.getElementById("previewFileName");
   
+  if (!previewDiv || !previewFileName) return;
+  
   previewDiv.style.display = "block";
   previewFileName.textContent = file.name;
   
-  if (file.type.startsWith("image/")) {
+  if (file.type.startsWith("image/") && previewImage) {
     const reader = new FileReader();
     reader.onload = (e) => {
       previewImage.src = e.target.result;
       previewImage.style.display = "block";
     };
     reader.readAsDataURL(file);
-  } else {
+  } else if (previewImage) {
     previewImage.style.display = "none";
   }
 }
 
-// ✅ NEW: Cancel file upload
+// ✅ Cancel file upload
 function cancelFileUpload() {
   selectedFile = null;
-  document.getElementById("filePreview").style.display = "none";
-  document.getElementById("chatFileInput").value = "";
+  const previewDiv = document.getElementById("filePreview");
+  const fileInput = document.getElementById("chatFileInput");
+  if (previewDiv) previewDiv.style.display = "none";
+  if (fileInput) fileInput.value = "";
 }
 
 // --- Send message from visitor to admin ---
 function sendChatMessage() {
   const input = document.getElementById("chatInput");
+  if (!input) return;
+  
   const msg = input.value.trim();
   
   // ✅ Check if there's a file to send
@@ -1275,7 +1760,7 @@ function sendChatMessage() {
   input.value = "";
 }
 
-// ✅ NEW: Send file via socket
+// ✅ Send file via socket
 function sendFileMessage(file, caption) {
   const reader = new FileReader();
   
@@ -1292,16 +1777,19 @@ function sendFileMessage(file, caption) {
     socket.emit("visitorFileMessage", fileData);
     appendFileMessage("You", file.name, reader.result, file.type, caption, "visitor");
     
-    document.getElementById("chatInput").value = "";
+    const input = document.getElementById("chatInput");
+    if (input) input.value = "";
     cancelFileUpload();
   };
   
   reader.readAsDataURL(file);
 }
 
-// ✅ NEW: Append file message to chat
+// ✅ Append file message to chat
 function appendFileMessage(sender, fileName, fileData, fileType, caption, type) {
   const chatBox = document.getElementById("chatMessages");
+  if (!chatBox) return;
+  
   const msgDiv = document.createElement("div");
   msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
   
@@ -1343,153 +1831,8 @@ function handleChatKeyPress(e) {
 // --- Append message to chat window ---
 function appendMessage(sender, text, type) {
   const chatBox = document.getElementById("chatMessages");
-  const msgDiv = document.createElement("div");
-  msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
-  msgDiv.innerHTML = `
-    <div class="message-avatar">
-      <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
-    </div>
-    <div class="message-content">
-      <div class="message-header">${sender}</div>
-      <div class="message-text">${text}</div>
-      <div class="message-time">${new Date().toLocaleTimeString()}</div>
-    </div>
-  `;
-  chatBox.appendChild(msgDiv);
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-// chart end
-
-socket.on("connect", () => {
-  socket.emit("joinVisitor", visitorId);
-  document.getElementById("chatStatusText").innerText = "Connected";
-  document.querySelector(".chat-status-dot").style.background = "green";
-});
-
-socket.on("disconnect", () => {
-  document.getElementById("chatStatusText").innerText = "Disconnected";
-  document.querySelector(".chat-status-dot").style.background = "red";
-});
-
-// Receive message from admin
-socket.on("chatMessage", (data) => {
-  appendMessage(
-    data.sender === "admin" ? "Support" : "You",
-    data.text,
-    data.sender
-  );
-});
-
-// ✨ NEW: Listen for admin typing notification
-socket.on("adminTyping", (data) => {
-  showAdminTypingIndicator(data.typing);
-});
-
-// ✨ NEW: Typing indicator handling
-let typingTimeout;
-const chatInput = document.getElementById("chatInput");
-
-if (chatInput) {
-  chatInput.addEventListener("input", () => {
-    // Emit typing event to server
-    socket.emit("visitorTyping", { typing: true });
-    
-    // Clear previous timeout
-    clearTimeout(typingTimeout);
-    
-    // Stop typing after 2 seconds of inactivity
-    typingTimeout = setTimeout(() => {
-      socket.emit("visitorTyping", { typing: false });
-    }, 2000);
-  });
-}
-
-// ✨ NEW: Show admin typing indicator
-function showAdminTypingIndicator(isTyping) {
-  const chatBox = document.getElementById("chatMessages");
-  let typingDiv = document.getElementById("admin-typing-indicator");
+  if (!chatBox) return;
   
-  if (isTyping) {
-    if (!typingDiv) {
-      typingDiv = document.createElement("div");
-      typingDiv.id = "admin-typing-indicator";
-      typingDiv.classList.add("message", "agent-message");
-      typingDiv.innerHTML = `
-        <div class="message-avatar">
-          <i class="fas fa-user-tie"></i>
-        </div>
-        <div class="message-content">
-          <div class="message-text" style="font-style: italic; color: #666;">
-            Support is typing<span class="dots">...</span>
-          </div>
-        </div>
-      `;
-      chatBox.appendChild(typingDiv);
-      
-      // Animate dots
-      animateTypingDots();
-    }
-  } else {
-    if (typingDiv) {
-      typingDiv.remove();
-    }
-  }
-  
-  // Auto-scroll to bottom
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// ✨ NEW: Animate typing dots
-function animateTypingDots() {
-  const dotsSpan = document.querySelector("#admin-typing-indicator .dots");
-  if (!dotsSpan) return;
-  
-  let dotCount = 0;
-  const interval = setInterval(() => {
-    if (!document.getElementById("admin-typing-indicator")) {
-      clearInterval(interval);
-      return;
-    }
-    dotCount = (dotCount + 1) % 4;
-    dotsSpan.textContent = ".".repeat(dotCount);
-  }, 500);
-}
-
-// --- Open chat modal ---
-function openChatModal() {
-  document.getElementById("chatModal").style.display = "block";
-}
-
-// --- Close chat modal ---
-function closeChatModal() {
-  document.getElementById("chatModal").style.display = "none";
-}
-
-// --- Send message from visitor to admin ---
-function sendChatMessage() {
-  const input = document.getElementById("chatInput");
-  const msg = input.value.trim();
-  if (!msg) return;
-
-  // ✨ NEW: Clear typing indicator when sending message
-  socket.emit("visitorTyping", { typing: false });
-  clearTimeout(typingTimeout);
-
-  socket.emit("visitorMessage", { visitorId, text: msg });
-  appendMessage("You", msg, "visitor");
-  input.value = "";
-}
-
-// --- Press Enter to send ---
-function handleChatKeyPress(e) {
-  if (e.key === "Enter") {
-    sendChatMessage();
-  }
-}
-
-// --- Append message to chat window ---
-function appendMessage(sender, text, type) {
-  const chatBox = document.getElementById("chatMessages");
   const msgDiv = document.createElement("div");
   msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
   msgDiv.innerHTML = `
@@ -1506,15 +1849,15 @@ function appendMessage(sender, text, type) {
   chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Make functions globally available (add at the END of your chat.js file)
-if (typeof window !== 'undefined') {
-  window.openChatModal = openChatModal;
-  window.closeChatModal = closeChatModal;
-  window.handleChatKeyPress = handleChatKeyPress;
-  window.sendChatMessage = sendChatMessage;
-  window.handleFileSelect = handleFileSelect;
-  window.cancelFileUpload = cancelFileUpload;
-}
+// ✅ Make all functions globally available
+window.openChatModal = openChatModal;
+window.closeChatModal = closeChatModal;
+window.handleChatKeyPress = handleChatKeyPress;
+window.sendChatMessage = sendChatMessage;
+window.handleFileSelect = handleFileSelect;
+window.cancelFileUpload = cancelFileUpload;
+
+// ==================== CHAT SECTION END ====================
 // chart end
 
 
