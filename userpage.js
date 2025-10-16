@@ -731,6 +731,81 @@ if (pinModal) {
       }
     });
   }
+  // Handle PIN form submission (for both transfer and fund card)
+  const enterPinForm = document.getElementById("enterPinForm");
+  if (enterPinForm) {
+    enterPinForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const pin = document.getElementById("transferPin").value;
+      const token = localStorage.getItem("token");
+      const submitButton = document.getElementById("pinSubmitBtn");
+
+      try {
+        submitButton.disabled = true;
+        submitButton.textContent = "Processing...";
+
+        let res, data;
+
+        if (window.fundCardData) {
+          // Fund Card flow
+          res = await fetch("https://valley.pvbonline.online/api/users/fund-card", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ ...window.fundCardData, pin })
+          });
+          data = await res.json();
+
+          if (res.ok) {
+            alert(`✅ Card funded successfully from ${window.fundCardData.source}! New Balance: $${data.card.cardBalance}`);
+            closeModal("enterPinModal");
+            window.fundCardData = null;
+            location.reload();
+          } else {
+            alert(data.message || "Funding failed. Please try again.");
+            document.getElementById("transferPin").value = '';
+          }
+
+        } else if (window.transferData) {
+          // Transfer flow
+          res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ ...window.transferData, pin })
+          });
+          data = await res.json();
+
+          if (res.ok) {
+            alert(data.message);
+            closeModal("enterPinModal");
+            window.transferData = null;
+            if (typeof loadUserDashboard === 'function') loadUserDashboard();
+          } else {
+            alert(data.message || "Transfer failed.");
+            document.getElementById("transferPin").value = '';
+          }
+        }
+
+      } catch (err) {
+        console.error(err);
+        alert("Something went wrong. Please try again.");
+      } finally {
+        submitButton.disabled = false;
+        
+        // Change button text based on operation
+        if (window.fundCardData) {
+          submitButton.textContent = "Confirm Funding";
+        } else {
+          submitButton.textContent = "Confirm Transfer";
+        }
+      }
+    });
+  }
 });
 
 async function loadRecentTransactions() {
