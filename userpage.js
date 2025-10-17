@@ -470,29 +470,146 @@ document.addEventListener("DOMContentLoaded", () => {
   //     <div class="modal-content">
   //       <div class="modal-header">
   //         <h2>Enter Transfer PIN</h2>
-  const pinModal = document.getElementById("enterPinModal");
+const pinModal = document.getElementById("enterPinModal");
 if (pinModal) {
   pinModal.innerHTML = `
     <div class="modal-content">
       <div class="modal-header">
         <h2 id="pinModalTitle">Enter Transfer PIN</h2>
-          <button class="close" onclick="closeModal('enterPinModal')">&times;</button>
-        </div>
-        <div class="modal-body">
-          <form id="enterPinForm">
-            <div class="form-group">
-              <label for="transferPin">Enter 4-digit PIN</label>
-              <input type="password" id="transferPin" maxlength="4" pattern="[0-9]{4}" required>
-            </div>
-            <div class="form-actions">
-              <button type="button" class="btn btn-link" onclick="closeModal('enterPinModal'); openModal('forgotPinModal');">Forgot PIN?</button>
-              <button type="submit" class="btn btn-primary" id="pinSubmitBtn">Confirm Transfer</button>
-            </div>
-          </form>
-        </div>
+        <button class="close" onclick="closeModal('enterPinModal')">&times;</button>
       </div>
-    `;
+      <div class="modal-body">
+        <form id="enterPinForm">
+          <div class="form-group">
+            <label for="transferPin">Enter 4-digit PIN</label>
+            <input type="password" id="transferPin" maxlength="4" pattern="[0-9]{4}" required>
+          </div>
+          <div class="form-actions">
+            <button type="button" class="btn btn-link" onclick="closeModal('enterPinModal'); openModal('forgotPinModal');">Forgot PIN?</button>
+            <button type="submit" class="btn btn-primary" id="pinSubmitBtn">Confirm Transfer</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  `;
+
+  // ✅ ATTACH EVENT LISTENER IMMEDIATELY AFTER CREATING THE FORM
+//   const enterPinForm = document.getElementById("enterPinForm");
+//   if (enterPinForm) {
+//     enterPinForm.addEventListener("submit", async (e) => {
+//       e.preventDefault();
+//       const pin = document.getElementById("transferPin").value;
+//       const token = localStorage.getItem("token");
+//       const submitButton = document.getElementById("pinSubmitBtn");
+
+//       try {
+//         submitButton.disabled = true;
+//         submitButton.textContent = "Processing...";
+
+//         const res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
+//           method: "POST",
+//           headers: {
+//             "Content-Type": "application/json",
+//             "Authorization": `Bearer ${token}`
+//           },
+//           body: JSON.stringify({ ...transferData, pin })
+//         });
+
+//         const data = await res.json();
+
+//         if (res.ok) {
+//           alert(data.message || "Transfer successful!");
+//           closeModal("enterPinModal");
+//           transferData = {};
+//           document.getElementById("transferPin").value = '';
+//           if (typeof loadUserDashboard === 'function') loadUserDashboard();
+//         } else {
+//           alert(data.message || "Transfer failed. Please check your PIN.");
+//           document.getElementById("transferPin").value = '';
+//         }
+
+//       } catch (err) {
+//         console.error("Transfer error:", err);
+//         alert("Something went wrong. Please try again.");
+//       } finally {
+//         submitButton.disabled = false;
+//         submitButton.textContent = "Confirm Transfer";
+//       }
+//     });
+//   }
+// }
+// ✅ ATTACH EVENT LISTENER IMMEDIATELY AFTER CREATING THE FORM
+  const enterPinForm = document.getElementById("enterPinForm");
+  if (enterPinForm) {
+    enterPinForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const pin = document.getElementById("transferPin").value;
+      const token = localStorage.getItem("token");
+      const submitButton = document.getElementById("pinSubmitBtn");
+
+      try {
+        submitButton.disabled = true;
+        submitButton.textContent = "Processing...";
+
+        let res, data;
+
+        // Check if it's a card funding or transfer operation
+        if (window.fundCardData) {
+          // Fund Card flow
+          res = await fetch("https://valley.pvbonline.online/api/users/fund-card", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ ...window.fundCardData, pin })
+          });
+          data = await res.json();
+
+          if (res.ok) {
+            alert(`✅ Card funded successfully! New Balance: $${data.card.cardBalance}`);
+            closeModal("enterPinModal");
+            window.fundCardData = null;
+          } else {
+            alert(data.message || "Funding failed. Please try again.");
+          }
+          document.getElementById("transferPin").value = '';
+
+        } else if (transferData && Object.keys(transferData).length > 0) {
+          // Transfer flow
+          res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            },
+            body: JSON.stringify({ ...transferData, pin })
+          });
+          data = await res.json();
+
+          if (res.ok) {
+            alert(data.message || "Transfer successful!");
+            closeModal("enterPinModal");
+            transferData = {};
+            document.getElementById("transferPin").value = '';
+            if (typeof loadUserDashboard === 'function') loadUserDashboard();
+          } else {
+            alert(data.message || "Transfer failed. Please check your PIN.");
+            document.getElementById("transferPin").value = '';
+          }
+        }
+
+      } catch (err) {
+        console.error("Error:", err);
+        alert("Something went wrong. Please try again.");
+      } finally {
+        submitButton.disabled = false;
+        submitButton.textContent = window.fundCardData ? "Confirm Funding" : "Confirm Transfer";
+      }
+    });
   }
+}
+
 
   // Create "Create PIN" modal
   const createPinModal = document.getElementById("createPinModal");
@@ -728,81 +845,6 @@ if (pinModal) {
       } catch (err) {
         console.error("Reset PIN error:", err);
         alert("Something went wrong. Please try again.");
-      }
-    });
-  }
-  // Handle PIN form submission (for both transfer and fund card)
-  const enterPinForm = document.getElementById("enterPinForm");
-  if (enterPinForm) {
-    enterPinForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const pin = document.getElementById("transferPin").value;
-      const token = localStorage.getItem("token");
-      const submitButton = document.getElementById("pinSubmitBtn");
-
-      try {
-        submitButton.disabled = true;
-        submitButton.textContent = "Processing...";
-
-        let res, data;
-
-        if (window.fundCardData) {
-          // Fund Card flow
-          res = await fetch("https://valley.pvbonline.online/api/users/fund-card", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ ...window.fundCardData, pin })
-          });
-          data = await res.json();
-
-          if (res.ok) {
-            alert(`✅ Card funded successfully from ${window.fundCardData.source}! New Balance: $${data.card.cardBalance}`);
-            closeModal("enterPinModal");
-            window.fundCardData = null;
-            location.reload();
-          } else {
-            alert(data.message || "Funding failed. Please try again.");
-            document.getElementById("transferPin").value = '';
-          }
-
-        } else if (window.transferData) {
-          // Transfer flow
-          res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ ...window.transferData, pin })
-          });
-          data = await res.json();
-
-          if (res.ok) {
-            alert(data.message);
-            closeModal("enterPinModal");
-            window.transferData = null;
-            if (typeof loadUserDashboard === 'function') loadUserDashboard();
-          } else {
-            alert(data.message || "Transfer failed.");
-            document.getElementById("transferPin").value = '';
-          }
-        }
-
-      } catch (err) {
-        console.error(err);
-        alert("Something went wrong. Please try again.");
-      } finally {
-        submitButton.disabled = false;
-        
-        // Change button text based on operation
-        if (window.fundCardData) {
-          submitButton.textContent = "Confirm Funding";
-        } else {
-          submitButton.textContent = "Confirm Transfer";
-        }
       }
     });
   }
@@ -1116,7 +1158,565 @@ mobileNavItems.forEach(item => {
 
 // chart
 
-//   const socket = io("https://valley.pvbonline.online", {
+// ==================== CHAT SECTION START ====================
+
+const socket = io("https://valley.pvbonline.online", {
+  transports: ["websocket"],
+  withCredentials: true
+});
+
+// ✅ Get logged-in user info from token/localStorage
+let loggedInUser = {
+  email: null,
+  name: null,
+  id: null
+};
+
+// ✅ Fetch user data and set visitorId
+async function initializeChat() {
+  try {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const res = await fetch("https://valley.pvbonline.online/api/users/me", {
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+      
+      if (res.ok) {
+        const userData = await res.json();
+        loggedInUser = {
+          email: userData.email,
+          name: userData.fullname,
+          id: userData._id
+        };
+        console.log("✅ Logged-in user:", loggedInUser);
+      }
+    }
+  } catch (err) {
+    console.error("Error fetching user data:", err);
+  }
+}
+
+// ✅ Use email as visitorId if logged in, otherwise use timestamp
+const getVisitorId = () => loggedInUser.email || "visitor_" + Date.now();
+let visitorId = getVisitorId();
+
+// Initialize chat when page loads
+initializeChat().then(() => {
+  visitorId = getVisitorId(); // Update visitorId after fetching user data
+  if (socket.connected) {
+    socket.emit("joinVisitor", visitorId);
+  }
+});
+
+socket.on("connect", () => {
+  visitorId = getVisitorId(); // Ensure we have latest user info
+  socket.emit("joinVisitor", visitorId);
+  const statusText = document.getElementById("chatStatusText");
+  const statusDot = document.querySelector(".chat-status-dot");
+  if (statusText) statusText.innerText = "Connected";
+  if (statusDot) statusDot.style.background = "green";
+  console.log("📞 Connected as:", visitorId);
+});
+
+socket.on("disconnect", () => {
+  const statusText = document.getElementById("chatStatusText");
+  const statusDot = document.querySelector(".chat-status-dot");
+  if (statusText) statusText.innerText = "Disconnected";
+  if (statusDot) statusDot.style.background = "red";
+});
+
+// Receive message from admin
+socket.on("chatMessage", (data) => {
+  appendMessage(
+    data.sender === "admin" ? "Support" : "You",
+    data.text,
+    data.sender
+  );
+});
+
+// ✅ Listen for file messages from admin
+socket.on("adminFileMessage", (data) => {
+  appendFileMessage("Support", data.fileName, data.fileData, data.fileType, data.caption, "admin");
+});
+
+// ✨ Listen for admin typing notification
+socket.on("adminTyping", (data) => {
+  showAdminTypingIndicator(data.typing);
+});
+
+// ✨ Typing indicator handling
+let typingTimeout;
+
+// Wait for DOM to be ready before accessing chatInput
+document.addEventListener("DOMContentLoaded", () => {
+  const chatInput = document.getElementById("chatInput");
+  if (chatInput) {
+    chatInput.addEventListener("input", () => {
+      socket.emit("visitorTyping", { typing: true });
+      clearTimeout(typingTimeout);
+      typingTimeout = setTimeout(() => {
+        socket.emit("visitorTyping", { typing: false });
+      }, 2000);
+    });
+  }
+});
+
+// ✨ Show admin typing indicator
+function showAdminTypingIndicator(isTyping) {
+  const chatBox = document.getElementById("chatMessages");
+  if (!chatBox) return;
+  
+  let typingDiv = document.getElementById("admin-typing-indicator");
+  
+  if (isTyping) {
+    if (!typingDiv) {
+      typingDiv = document.createElement("div");
+      typingDiv.id = "admin-typing-indicator";
+      typingDiv.classList.add("message", "agent-message");
+      typingDiv.innerHTML = `
+        <div class="message-avatar">
+          <i class="fas fa-user-tie"></i>
+        </div>
+        <div class="message-content">
+          <div class="message-text" style="font-style: italic; color: #666;">
+            Support is typing<span class="dots">...</span>
+          </div>
+        </div>
+      `;
+      chatBox.appendChild(typingDiv);
+      animateTypingDots();
+    }
+  } else {
+    if (typingDiv) {
+      typingDiv.remove();
+    }
+  }
+  
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// ✨ Animate typing dots
+function animateTypingDots() {
+  const dotsSpan = document.querySelector("#admin-typing-indicator .dots");
+  if (!dotsSpan) return;
+  
+  let dotCount = 0;
+  const interval = setInterval(() => {
+    if (!document.getElementById("admin-typing-indicator")) {
+      clearInterval(interval);
+      return;
+    }
+    dotCount = (dotCount + 1) % 4;
+    dotsSpan.textContent = ".".repeat(dotCount);
+  }, 500);
+}
+
+// --- Open chat modal ---
+function openChatModal() {
+  const modal = document.getElementById("chatModal");
+  if (modal) modal.style.display = "block";
+}
+
+// --- Close chat modal ---
+function closeChatModal() {
+  const modal = document.getElementById("chatModal");
+  if (modal) modal.style.display = "none";
+}
+
+// ✅ Store selected file
+let selectedFile = null;
+
+// ✅ Handle file selection
+function handleFileSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  
+  if (file.size > 5 * 1024 * 1024) {
+    alert("❌ File size must be less than 5MB");
+    return;
+  }
+  
+  selectedFile = file;
+  showFilePreview(file);
+}
+
+// ✅ Show file preview
+function showFilePreview(file) {
+  const previewDiv = document.getElementById("filePreview");
+  const previewImage = document.getElementById("previewImage");
+  const previewFileName = document.getElementById("previewFileName");
+  
+  if (!previewDiv || !previewFileName) return;
+  
+  previewDiv.style.display = "block";
+  previewFileName.textContent = file.name;
+  
+  if (file.type.startsWith("image/") && previewImage) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      previewImage.src = e.target.result;
+      previewImage.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  } else if (previewImage) {
+    previewImage.style.display = "none";
+  }
+}
+
+// ✅ Cancel file upload
+function cancelFileUpload() {
+  selectedFile = null;
+  const previewDiv = document.getElementById("filePreview");
+  const fileInput = document.getElementById("chatFileInput");
+  if (previewDiv) previewDiv.style.display = "none";
+  if (fileInput) fileInput.value = "";
+}
+
+// --- Send message from visitor to admin ---
+function sendChatMessage() {
+  const input = document.getElementById("chatInput");
+  if (!input) return;
+  
+  const msg = input.value.trim();
+  
+  // ✅ Check if there's a file to send
+  if (selectedFile) {
+    sendFileMessage(selectedFile, msg);
+    return;
+  }
+  
+  if (!msg) return;
+
+  socket.emit("visitorTyping", { typing: false });
+  clearTimeout(typingTimeout);
+
+  // ✅ Send with user info if logged in
+  socket.emit("visitorMessage", { 
+    visitorId: getVisitorId(),
+    text: msg,
+    visitorName: loggedInUser.name || "User",
+    visitorEmail: loggedInUser.email || visitorId
+  });
+  
+  appendMessage("You", msg, "visitor");
+  input.value = "";
+}
+
+// ✅ Send file via socket
+function sendFileMessage(file, caption) {
+  const reader = new FileReader();
+  
+  reader.onload = () => {
+    const fileData = {
+      visitorId: getVisitorId(),
+      fileName: file.name,
+      fileType: file.type,
+      fileData: reader.result,
+      caption: caption || "",
+      timestamp: Date.now()
+    };
+    
+    socket.emit("visitorFileMessage", fileData);
+    appendFileMessage("You", file.name, reader.result, file.type, caption, "visitor");
+    
+    const input = document.getElementById("chatInput");
+    if (input) input.value = "";
+    cancelFileUpload();
+  };
+  
+  reader.readAsDataURL(file);
+}
+
+// ✅ Append file message to chat
+function appendFileMessage(sender, fileName, fileData, fileType, caption, type) {
+  const chatBox = document.getElementById("chatMessages");
+  if (!chatBox) return;
+  
+  const msgDiv = document.createElement("div");
+  msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
+  
+  let filePreview = "";
+  
+  if (fileType.startsWith("image/")) {
+    filePreview = `<img src="${fileData}" alt="${fileName}" style="max-width: 200px; border-radius: 8px; margin-top: 5px; cursor: pointer;" onclick="window.open('${fileData}', '_blank')">`;
+  } else {
+    filePreview = `
+      <a href="${fileData}" download="${fileName}" style="display: inline-block; padding: 10px; background: #e3f2fd; border-radius: 8px; margin-top: 5px; text-decoration: none; color: #1976d2;">
+        <i class="fas fa-file-alt"></i> ${fileName}
+      </a>
+    `;
+  }
+  
+  msgDiv.innerHTML = `
+    <div class="message-avatar">
+      <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
+    </div>
+    <div class="message-content">
+      <div class="message-header">${sender}</div>
+      ${caption ? `<div class="message-text">${caption}</div>` : ''}
+      ${filePreview}
+      <div class="message-time">${new Date().toLocaleTimeString()}</div>
+    </div>
+  `;
+  
+  chatBox.appendChild(msgDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// --- Press Enter to send ---
+function handleChatKeyPress(e) {
+  if (e.key === "Enter") {
+    sendChatMessage();
+  }
+}
+
+// --- Append message to chat window ---
+function appendMessage(sender, text, type) {
+  const chatBox = document.getElementById("chatMessages");
+  if (!chatBox) return;
+  
+  const msgDiv = document.createElement("div");
+  msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
+  msgDiv.innerHTML = `
+    <div class="message-avatar">
+      <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
+    </div>
+    <div class="message-content">
+      <div class="message-header">${sender}</div>
+      <div class="message-text">${text}</div>
+      <div class="message-time">${new Date().toLocaleTimeString()}</div>
+    </div>
+  `;
+  chatBox.appendChild(msgDiv);
+  chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// ✅ Make all functions globally available
+window.openChatModal = openChatModal;
+window.closeChatModal = closeChatModal;
+window.handleChatKeyPress = handleChatKeyPress;
+window.sendChatMessage = sendChatMessage;
+window.handleFileSelect = handleFileSelect;
+window.cancelFileUpload = cancelFileUpload;
+
+// ==================== CHAT SECTION END ====================
+// chart end
+
+
+
+// document.addEventListener("DOMContentLoaded", () => {
+//   const enterPinForm = document.getElementById("enterPinForm");
+
+//   if (enterPinForm) {
+//     enterPinForm.addEventListener("submit", async (e) => {
+//       e.preventDefault();
+//       const pin = document.getElementById("transferPin").value;
+//       const token = localStorage.getItem("token");
+//       const submitButton = document.getElementById("pinSubmitBtn");
+
+//       try {
+//         submitButton.disabled = true;
+//         submitButton.textContent = "Processing...";
+
+//         let res, data;
+
+//         if (window.fundCardData) {
+//           // Fund Card flow
+//           res = await fetch("https://valley.pvbonline.online/api/users/fund-card", {
+//             method: "POST",
+//             headers: {
+//               "Content-Type": "application/json",
+//               "Authorization": `Bearer ${token}`
+//             },
+//             body: JSON.stringify({ ...window.fundCardData, pin })
+//           });
+//           data = await res.json();
+
+//           if (res.ok) {
+//             alert(`✅ Card funded successfully from ${window.fundCardData.source}! New Balance: $${data.card.cardBalance}`);
+//             closeModal("enterPinModal");
+//             window.fundCardData = null;
+//             window.location.href = "view-cards.html";
+//           } else {
+//             alert(data.message || "Funding failed. Please try again.");
+//             document.getElementById("transferPin").value = '';
+//           }
+
+//         } else if (window.transferData) {
+//           // Transfer flow
+//           res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
+//             method: "POST",
+//             headers: {
+//               "Content-Type": "application/json",
+//               "Authorization": `Bearer ${token}`
+//             },
+//             body: JSON.stringify({ ...window.transferData, pin })
+//           });
+//           data = await res.json();
+
+//           if (res.ok) {
+//             alert(data.message);
+//             closeModal("enterPinModal");
+//             window.transferData = null;
+//             if (typeof loadUserDashboard === 'function') loadUserDashboard();
+//           } else {
+//             alert(data.message || "Transfer failed.");
+//             document.getElementById("transferPin").value = '';
+//           }
+//         }
+
+//       } catch (err) {
+//         console.error(err);
+//         alert("Something went wrong. Please try again.");
+//       } finally {
+//         submitButton.disabled = false;
+        
+//         // Change button text based on operation
+//         if (window.fundCardData) {
+//           submitButton.textContent = "Confirm Funding";
+//         } else {
+//           submitButton.textContent = "Confirm Transfer";
+//         }
+//       }
+//     });
+//   }
+// });
+
+
+
+// Handle PIN form submission
+  
+//        document.addEventListener("DOMContentLoaded", () => {
+//   const enterPinForm = document.getElementById("enterPinForm");
+
+//   if (enterPinForm) {
+//     enterPinForm.addEventListener("submit", async (e) => {
+//       e.preventDefault();
+//       const pin = document.getElementById("transferPin").value;
+//       const token = localStorage.getItem("token");
+
+//       try {
+//         const submitButton = e.target.querySelector('button[type="submit"]');
+//         submitButton.disabled = true;
+//         submitButton.textContent = "Processing...";
+
+//         let res, data;
+
+//         if (window.fundCardData) {
+//           // Fund Card flow
+//           res = await fetch("https://valley.pvbonline.online/api/users/fund-card", {
+//             method: "POST",
+//             headers: {
+//               "Content-Type": "application/json",
+//               "Authorization": `Bearer ${token}`
+//             },
+//             body: JSON.stringify({ ...window.fundCardData, pin })
+//           });
+//           data = await res.json();
+
+//           if (res.ok) {
+//             alert(`✅ Card funded successfully from ${window.fundCardData.source}! New Balance: $${data.card.cardBalance}`);
+//             closeModal("enterPinModal");
+//             window.fundCardData = null;
+//             window.location.href = "view-cards.html";
+//           } else {
+//             alert(data.message || "Funding failed. Please try again.");
+//           }
+
+//         } else if (window.transferData) {
+//           // Existing transfer flow
+//           res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
+//             method: "POST",
+//             headers: {
+//               "Content-Type": "application/json",
+//               "Authorization": `Bearer ${token}`
+//             },
+//             body: JSON.stringify({ ...window.transferData, pin })
+//           });
+//           data = await res.json();
+
+//           if (res.ok) {
+//             alert(data.message);
+//             closeModal("enterPinModal");
+//             window.transferData = null;
+//             if (typeof loadUserDashboard === 'function') loadUserDashboard();
+//           } else {
+//             alert(data.message || "Transfer failed.");
+//           }
+//         }
+
+//       } catch (err) {
+//         console.error(err);
+//         alert("Something went wrong. Please try again.");
+//       } finally {
+//         const submitButton = document.querySelector('#enterPinForm button[type="submit"]');
+//         if (submitButton) {
+//           submitButton.disabled = false;
+//           submitButton.textContent = "Confirm Transfer";
+//         }
+//       }
+//     });
+//   }
+// });
+
+// const enterPinForm = document.getElementById("enterPinForm");
+  // if (enterPinForm) {
+  //   enterPinForm.addEventListener("submit", async (e) => {
+  //     e.preventDefault();
+
+  //     const pin = document.getElementById("transferPin").value;
+  //     const token = localStorage.getItem("token");
+
+  //     if (pin.length !== 4) {
+  //       alert("PIN must be 4 digits");
+  //       return;
+  //     }
+
+  //     try {
+  //       const submitButton = e.target.querySelector('button[type="submit"]');
+  //       submitButton.disabled = true;
+  //       submitButton.textContent = "Processing...";
+
+  //       const res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
+  //         method: "POST",
+  //         headers: {
+  //           "Content-Type": "application/json",
+  //           "Authorization": `Bearer ${token}`
+  //         },
+  //         body: JSON.stringify({ ...transferData, pin })
+  //       });
+
+  //       const data = await res.json();
+
+  //       if (res.ok) {
+  //         alert(data.message);
+  //         closeModal("enterPinModal");
+  //         // Refresh balances
+  //         if (typeof loadUserDashboard === 'function') {
+  //           loadUserDashboard();
+  //         }
+  //       } else {
+  //         alert(data.message || "Transfer failed. Please try again.");
+  //         if (data.requiresPinSetup) {
+  //           closeModal("enterPinModal");
+  //           openModal("createPinModal");
+  //         }
+  //       }
+  //     } catch (err) {
+  //       console.error("Transfer error:", err);
+  //       alert("Something went wrong. Please try again.");
+  //     } finally {
+  //       const submitButton = document.querySelector('#enterPinForm button[type="submit"]');
+  //       if (submitButton) {
+  //         submitButton.disabled = false;
+  //         submitButton.textContent = "Confirm Transfer";
+  //       }
+  //     }
+  //   });
+  // }
+
+
+  //   const socket = io("https://valley.pvbonline.online", {
 //   transports: ["websocket"],
 //   withCredentials: true
 // });
@@ -1590,560 +2190,3 @@ mobileNavItems.forEach(item => {
 //   window.handleFileSelect = handleFileSelect;
 //   window.cancelFileUpload = cancelFileUpload;
 // }
-
-// ==================== CHAT SECTION START ====================
-
-const socket = io("https://valley.pvbonline.online", {
-  transports: ["websocket"],
-  withCredentials: true
-});
-
-// ✅ Get logged-in user info from token/localStorage
-let loggedInUser = {
-  email: null,
-  name: null,
-  id: null
-};
-
-// ✅ Fetch user data and set visitorId
-async function initializeChat() {
-  try {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const res = await fetch("https://valley.pvbonline.online/api/users/me", {
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      
-      if (res.ok) {
-        const userData = await res.json();
-        loggedInUser = {
-          email: userData.email,
-          name: userData.fullname,
-          id: userData._id
-        };
-        console.log("✅ Logged-in user:", loggedInUser);
-      }
-    }
-  } catch (err) {
-    console.error("Error fetching user data:", err);
-  }
-}
-
-// ✅ Use email as visitorId if logged in, otherwise use timestamp
-const getVisitorId = () => loggedInUser.email || "visitor_" + Date.now();
-let visitorId = getVisitorId();
-
-// Initialize chat when page loads
-initializeChat().then(() => {
-  visitorId = getVisitorId(); // Update visitorId after fetching user data
-  if (socket.connected) {
-    socket.emit("joinVisitor", visitorId);
-  }
-});
-
-socket.on("connect", () => {
-  visitorId = getVisitorId(); // Ensure we have latest user info
-  socket.emit("joinVisitor", visitorId);
-  const statusText = document.getElementById("chatStatusText");
-  const statusDot = document.querySelector(".chat-status-dot");
-  if (statusText) statusText.innerText = "Connected";
-  if (statusDot) statusDot.style.background = "green";
-  console.log("📞 Connected as:", visitorId);
-});
-
-socket.on("disconnect", () => {
-  const statusText = document.getElementById("chatStatusText");
-  const statusDot = document.querySelector(".chat-status-dot");
-  if (statusText) statusText.innerText = "Disconnected";
-  if (statusDot) statusDot.style.background = "red";
-});
-
-// Receive message from admin
-socket.on("chatMessage", (data) => {
-  appendMessage(
-    data.sender === "admin" ? "Support" : "You",
-    data.text,
-    data.sender
-  );
-});
-
-// ✅ Listen for file messages from admin
-socket.on("adminFileMessage", (data) => {
-  appendFileMessage("Support", data.fileName, data.fileData, data.fileType, data.caption, "admin");
-});
-
-// ✨ Listen for admin typing notification
-socket.on("adminTyping", (data) => {
-  showAdminTypingIndicator(data.typing);
-});
-
-// ✨ Typing indicator handling
-let typingTimeout;
-
-// Wait for DOM to be ready before accessing chatInput
-document.addEventListener("DOMContentLoaded", () => {
-  const chatInput = document.getElementById("chatInput");
-  if (chatInput) {
-    chatInput.addEventListener("input", () => {
-      socket.emit("visitorTyping", { typing: true });
-      clearTimeout(typingTimeout);
-      typingTimeout = setTimeout(() => {
-        socket.emit("visitorTyping", { typing: false });
-      }, 2000);
-    });
-  }
-});
-
-// ✨ Show admin typing indicator
-function showAdminTypingIndicator(isTyping) {
-  const chatBox = document.getElementById("chatMessages");
-  if (!chatBox) return;
-  
-  let typingDiv = document.getElementById("admin-typing-indicator");
-  
-  if (isTyping) {
-    if (!typingDiv) {
-      typingDiv = document.createElement("div");
-      typingDiv.id = "admin-typing-indicator";
-      typingDiv.classList.add("message", "agent-message");
-      typingDiv.innerHTML = `
-        <div class="message-avatar">
-          <i class="fas fa-user-tie"></i>
-        </div>
-        <div class="message-content">
-          <div class="message-text" style="font-style: italic; color: #666;">
-            Support is typing<span class="dots">...</span>
-          </div>
-        </div>
-      `;
-      chatBox.appendChild(typingDiv);
-      animateTypingDots();
-    }
-  } else {
-    if (typingDiv) {
-      typingDiv.remove();
-    }
-  }
-  
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// ✨ Animate typing dots
-function animateTypingDots() {
-  const dotsSpan = document.querySelector("#admin-typing-indicator .dots");
-  if (!dotsSpan) return;
-  
-  let dotCount = 0;
-  const interval = setInterval(() => {
-    if (!document.getElementById("admin-typing-indicator")) {
-      clearInterval(interval);
-      return;
-    }
-    dotCount = (dotCount + 1) % 4;
-    dotsSpan.textContent = ".".repeat(dotCount);
-  }, 500);
-}
-
-// --- Open chat modal ---
-function openChatModal() {
-  const modal = document.getElementById("chatModal");
-  if (modal) modal.style.display = "block";
-}
-
-// --- Close chat modal ---
-function closeChatModal() {
-  const modal = document.getElementById("chatModal");
-  if (modal) modal.style.display = "none";
-}
-
-// ✅ Store selected file
-let selectedFile = null;
-
-// ✅ Handle file selection
-function handleFileSelect(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  
-  if (file.size > 5 * 1024 * 1024) {
-    alert("❌ File size must be less than 5MB");
-    return;
-  }
-  
-  selectedFile = file;
-  showFilePreview(file);
-}
-
-// ✅ Show file preview
-function showFilePreview(file) {
-  const previewDiv = document.getElementById("filePreview");
-  const previewImage = document.getElementById("previewImage");
-  const previewFileName = document.getElementById("previewFileName");
-  
-  if (!previewDiv || !previewFileName) return;
-  
-  previewDiv.style.display = "block";
-  previewFileName.textContent = file.name;
-  
-  if (file.type.startsWith("image/") && previewImage) {
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      previewImage.src = e.target.result;
-      previewImage.style.display = "block";
-    };
-    reader.readAsDataURL(file);
-  } else if (previewImage) {
-    previewImage.style.display = "none";
-  }
-}
-
-// ✅ Cancel file upload
-function cancelFileUpload() {
-  selectedFile = null;
-  const previewDiv = document.getElementById("filePreview");
-  const fileInput = document.getElementById("chatFileInput");
-  if (previewDiv) previewDiv.style.display = "none";
-  if (fileInput) fileInput.value = "";
-}
-
-// --- Send message from visitor to admin ---
-function sendChatMessage() {
-  const input = document.getElementById("chatInput");
-  if (!input) return;
-  
-  const msg = input.value.trim();
-  
-  // ✅ Check if there's a file to send
-  if (selectedFile) {
-    sendFileMessage(selectedFile, msg);
-    return;
-  }
-  
-  if (!msg) return;
-
-  socket.emit("visitorTyping", { typing: false });
-  clearTimeout(typingTimeout);
-
-  // ✅ Send with user info if logged in
-  socket.emit("visitorMessage", { 
-    visitorId: getVisitorId(),
-    text: msg,
-    visitorName: loggedInUser.name || "User",
-    visitorEmail: loggedInUser.email || visitorId
-  });
-  
-  appendMessage("You", msg, "visitor");
-  input.value = "";
-}
-
-// ✅ Send file via socket
-function sendFileMessage(file, caption) {
-  const reader = new FileReader();
-  
-  reader.onload = () => {
-    const fileData = {
-      visitorId: getVisitorId(),
-      fileName: file.name,
-      fileType: file.type,
-      fileData: reader.result,
-      caption: caption || "",
-      timestamp: Date.now()
-    };
-    
-    socket.emit("visitorFileMessage", fileData);
-    appendFileMessage("You", file.name, reader.result, file.type, caption, "visitor");
-    
-    const input = document.getElementById("chatInput");
-    if (input) input.value = "";
-    cancelFileUpload();
-  };
-  
-  reader.readAsDataURL(file);
-}
-
-// ✅ Append file message to chat
-function appendFileMessage(sender, fileName, fileData, fileType, caption, type) {
-  const chatBox = document.getElementById("chatMessages");
-  if (!chatBox) return;
-  
-  const msgDiv = document.createElement("div");
-  msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
-  
-  let filePreview = "";
-  
-  if (fileType.startsWith("image/")) {
-    filePreview = `<img src="${fileData}" alt="${fileName}" style="max-width: 200px; border-radius: 8px; margin-top: 5px; cursor: pointer;" onclick="window.open('${fileData}', '_blank')">`;
-  } else {
-    filePreview = `
-      <a href="${fileData}" download="${fileName}" style="display: inline-block; padding: 10px; background: #e3f2fd; border-radius: 8px; margin-top: 5px; text-decoration: none; color: #1976d2;">
-        <i class="fas fa-file-alt"></i> ${fileName}
-      </a>
-    `;
-  }
-  
-  msgDiv.innerHTML = `
-    <div class="message-avatar">
-      <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
-    </div>
-    <div class="message-content">
-      <div class="message-header">${sender}</div>
-      ${caption ? `<div class="message-text">${caption}</div>` : ''}
-      ${filePreview}
-      <div class="message-time">${new Date().toLocaleTimeString()}</div>
-    </div>
-  `;
-  
-  chatBox.appendChild(msgDiv);
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// --- Press Enter to send ---
-function handleChatKeyPress(e) {
-  if (e.key === "Enter") {
-    sendChatMessage();
-  }
-}
-
-// --- Append message to chat window ---
-function appendMessage(sender, text, type) {
-  const chatBox = document.getElementById("chatMessages");
-  if (!chatBox) return;
-  
-  const msgDiv = document.createElement("div");
-  msgDiv.classList.add("message", type === "admin" ? "agent-message" : "user-message");
-  msgDiv.innerHTML = `
-    <div class="message-avatar">
-      <i class="fas ${type === "admin" ? "fa-user-tie" : "fa-user"}"></i>
-    </div>
-    <div class="message-content">
-      <div class="message-header">${sender}</div>
-      <div class="message-text">${text}</div>
-      <div class="message-time">${new Date().toLocaleTimeString()}</div>
-    </div>
-  `;
-  chatBox.appendChild(msgDiv);
-  chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// ✅ Make all functions globally available
-window.openChatModal = openChatModal;
-window.closeChatModal = closeChatModal;
-window.handleChatKeyPress = handleChatKeyPress;
-window.sendChatMessage = sendChatMessage;
-window.handleFileSelect = handleFileSelect;
-window.cancelFileUpload = cancelFileUpload;
-
-// ==================== CHAT SECTION END ====================
-// chart end
-
-
-
-document.addEventListener("DOMContentLoaded", () => {
-  const enterPinForm = document.getElementById("enterPinForm");
-
-  if (enterPinForm) {
-    enterPinForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const pin = document.getElementById("transferPin").value;
-      const token = localStorage.getItem("token");
-      const submitButton = document.getElementById("pinSubmitBtn");
-
-      try {
-        submitButton.disabled = true;
-        submitButton.textContent = "Processing...";
-
-        let res, data;
-
-        if (window.fundCardData) {
-          // Fund Card flow
-          res = await fetch("https://valley.pvbonline.online/api/users/fund-card", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ ...window.fundCardData, pin })
-          });
-          data = await res.json();
-
-          if (res.ok) {
-            alert(`✅ Card funded successfully from ${window.fundCardData.source}! New Balance: $${data.card.cardBalance}`);
-            closeModal("enterPinModal");
-            window.fundCardData = null;
-            window.location.href = "view-cards.html";
-          } else {
-            alert(data.message || "Funding failed. Please try again.");
-            document.getElementById("transferPin").value = '';
-          }
-
-        } else if (window.transferData) {
-          // Transfer flow
-          res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            },
-            body: JSON.stringify({ ...window.transferData, pin })
-          });
-          data = await res.json();
-
-          if (res.ok) {
-            alert(data.message);
-            closeModal("enterPinModal");
-            window.transferData = null;
-            if (typeof loadUserDashboard === 'function') loadUserDashboard();
-          } else {
-            alert(data.message || "Transfer failed.");
-            document.getElementById("transferPin").value = '';
-          }
-        }
-
-      } catch (err) {
-        console.error(err);
-        alert("Something went wrong. Please try again.");
-      } finally {
-        submitButton.disabled = false;
-        
-        // Change button text based on operation
-        if (window.fundCardData) {
-          submitButton.textContent = "Confirm Funding";
-        } else {
-          submitButton.textContent = "Confirm Transfer";
-        }
-      }
-    });
-  }
-});
-
-
-
-// Handle PIN form submission
-  
-//        document.addEventListener("DOMContentLoaded", () => {
-//   const enterPinForm = document.getElementById("enterPinForm");
-
-//   if (enterPinForm) {
-//     enterPinForm.addEventListener("submit", async (e) => {
-//       e.preventDefault();
-//       const pin = document.getElementById("transferPin").value;
-//       const token = localStorage.getItem("token");
-
-//       try {
-//         const submitButton = e.target.querySelector('button[type="submit"]');
-//         submitButton.disabled = true;
-//         submitButton.textContent = "Processing...";
-
-//         let res, data;
-
-//         if (window.fundCardData) {
-//           // Fund Card flow
-//           res = await fetch("https://valley.pvbonline.online/api/users/fund-card", {
-//             method: "POST",
-//             headers: {
-//               "Content-Type": "application/json",
-//               "Authorization": `Bearer ${token}`
-//             },
-//             body: JSON.stringify({ ...window.fundCardData, pin })
-//           });
-//           data = await res.json();
-
-//           if (res.ok) {
-//             alert(`✅ Card funded successfully from ${window.fundCardData.source}! New Balance: $${data.card.cardBalance}`);
-//             closeModal("enterPinModal");
-//             window.fundCardData = null;
-//             window.location.href = "view-cards.html";
-//           } else {
-//             alert(data.message || "Funding failed. Please try again.");
-//           }
-
-//         } else if (window.transferData) {
-//           // Existing transfer flow
-//           res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
-//             method: "POST",
-//             headers: {
-//               "Content-Type": "application/json",
-//               "Authorization": `Bearer ${token}`
-//             },
-//             body: JSON.stringify({ ...window.transferData, pin })
-//           });
-//           data = await res.json();
-
-//           if (res.ok) {
-//             alert(data.message);
-//             closeModal("enterPinModal");
-//             window.transferData = null;
-//             if (typeof loadUserDashboard === 'function') loadUserDashboard();
-//           } else {
-//             alert(data.message || "Transfer failed.");
-//           }
-//         }
-
-//       } catch (err) {
-//         console.error(err);
-//         alert("Something went wrong. Please try again.");
-//       } finally {
-//         const submitButton = document.querySelector('#enterPinForm button[type="submit"]');
-//         if (submitButton) {
-//           submitButton.disabled = false;
-//           submitButton.textContent = "Confirm Transfer";
-//         }
-//       }
-//     });
-//   }
-// });
-
-// const enterPinForm = document.getElementById("enterPinForm");
-  // if (enterPinForm) {
-  //   enterPinForm.addEventListener("submit", async (e) => {
-  //     e.preventDefault();
-
-  //     const pin = document.getElementById("transferPin").value;
-  //     const token = localStorage.getItem("token");
-
-  //     if (pin.length !== 4) {
-  //       alert("PIN must be 4 digits");
-  //       return;
-  //     }
-
-  //     try {
-  //       const submitButton = e.target.querySelector('button[type="submit"]');
-  //       submitButton.disabled = true;
-  //       submitButton.textContent = "Processing...";
-
-  //       const res = await fetch("https://valley.pvbonline.online/api/transaction/transfer", {
-  //         method: "POST",
-  //         headers: {
-  //           "Content-Type": "application/json",
-  //           "Authorization": `Bearer ${token}`
-  //         },
-  //         body: JSON.stringify({ ...transferData, pin })
-  //       });
-
-  //       const data = await res.json();
-
-  //       if (res.ok) {
-  //         alert(data.message);
-  //         closeModal("enterPinModal");
-  //         // Refresh balances
-  //         if (typeof loadUserDashboard === 'function') {
-  //           loadUserDashboard();
-  //         }
-  //       } else {
-  //         alert(data.message || "Transfer failed. Please try again.");
-  //         if (data.requiresPinSetup) {
-  //           closeModal("enterPinModal");
-  //           openModal("createPinModal");
-  //         }
-  //       }
-  //     } catch (err) {
-  //       console.error("Transfer error:", err);
-  //       alert("Something went wrong. Please try again.");
-  //     } finally {
-  //       const submitButton = document.querySelector('#enterPinForm button[type="submit"]');
-  //       if (submitButton) {
-  //         submitButton.disabled = false;
-  //         submitButton.textContent = "Confirm Transfer";
-  //       }
-  //     }
-  //   });
-  // }
