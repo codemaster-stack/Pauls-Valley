@@ -723,8 +723,45 @@ socket.emit("requestChatHistory");
 //   }
 // });
 // Receive chat history from server
+// Receive chat history from server
 socket.on("chatHistory", (data) => {
   console.log("📚 Received chat history from server:", data);
+  
+  // ✅ First, populate the users list with everyone who has chatted
+  const usersUl = document.getElementById("usersUl");
+  if (usersUl && data && typeof data === 'object') {
+    const visitorIds = Object.keys(data);
+    
+    if (visitorIds.length > 0) {
+      // Clear "waiting" message
+      usersUl.innerHTML = "";
+      
+      // Add each visitor to the list
+      visitorIds.forEach(visitorId => {
+        if (!document.getElementById(`visitor-${visitorId}`)) {
+          const li = document.createElement("li");
+          li.textContent = visitorId;
+          li.style.cursor = "pointer";
+          li.style.padding = "8px";
+          li.style.borderBottom = "1px solid #ddd";
+          li.style.listStyle = "none";
+          li.onclick = () => {
+            selectUser(visitorId, visitorId);
+            // Highlight selected user
+            document.querySelectorAll("#usersUl li").forEach(item => {
+              item.style.backgroundColor = "";
+              item.style.fontWeight = "normal";
+            });
+            li.style.backgroundColor = "#e3f2fd";
+          };
+          li.id = `visitor-${visitorId}`;
+          usersUl.appendChild(li);
+        }
+      });
+      
+      console.log(`✅ Added ${visitorIds.length} user(s) to chat list`);
+    }
+  }
   
   // Store all conversation history
   if (data && typeof data === 'object') {
