@@ -1246,7 +1246,6 @@ async function loadChatHistory() {
     console.error("Error loading chat history:", error);
   }
 }
-
 const getVisitorId = () => loggedInUser.email || "visitor_" + Date.now();
 
 // ✅ Use email as visitorId if logged in, otherwise use timestamp
@@ -1487,7 +1486,7 @@ function sendFileMessage(file, caption) {
   reader.readAsDataURL(file);
 }
 
-
+function appendMessage
 
 // ✅ Append file message to chat
 function appendFileMessage(sender, fileName, fileData, fileType, caption, type) {
