@@ -1196,58 +1196,6 @@ async function initializeChat() {
   }
 }
 
-// ✅ Load chat history from database
-// async function loadChatHistory() {
-//   try {
-//     const token = localStorage.getItem("token");
-//     if (!token) {
-//       console.log("⚠️ No token, skipping chat history");
-//       return;
-//     }
-    
-//     const response = await fetch("https://valley.pvbonline.online/api/chat/my-history", {
-//       headers: { "Authorization": `Bearer ${token}` }
-//     });
-    
-//     if (response.ok) {
-//       const data = await response.json();
-//       const chatBox = document.getElementById("chatMessages");
-      
-//       if (chatBox && data.messages.length > 0) {
-//         chatBox.innerHTML = ""; // Clear any existing messages
-        
-//         data.messages.forEach(msg => {
-//           if (msg.isFile) {
-//             // Display file message
-//             appendFileMessage(
-//               msg.sender === "admin" ? "Support" : "You",
-//               msg.fileName,
-//               msg.fileData,
-//               msg.fileType,
-//               msg.message !== `Sent a file: ${msg.fileName}` ? msg.message : "",
-//               msg.sender === "admin" ? "admin" : "visitor"
-//             );
-//           } else {
-//             // Display text message
-//             appendMessage(
-//               msg.sender === "admin" ? "Support" : "You",
-//               msg.message,
-//               msg.sender === "admin" ? "admin" : "visitor"
-//             );
-//           }
-//         });
-        
-//         console.log(`✅ Loaded ${data.messages.length} chat messages`);
-//       }
-//     } else {
-//       console.error("Failed to load chat history:", response.status);
-//     }
-//   } catch (error) {
-//     console.error("Error loading chat history:", error);
-//   }
-// }
-// const getVisitorId = () => loggedInUser.email || "visitor_" + Date.now();
-
 // ✅ Use email as visitorId if logged in, otherwise use timestamp
 const getVisitorId = () => loggedInUser.email || "visitor_" + Date.now();
 let visitorId = getVisitorId();
@@ -1364,18 +1312,11 @@ function animateTypingDots() {
 }
 
 // --- Open chat modal ---
-// function openChatModal() {
-//   const modal = document.getElementById("chatModal");
-//   if (modal) modal.style.display = "block";
-// }
-// --- Open chat modal ---
-  function openChatModal() {
+function openChatModal() {
   const modal = document.getElementById("chatModal");
-  if (modal) {
-    modal.style.display = "block";
-    loadChatHistory(); // ✅ Load chat history when opening modal
-  }
+  if (modal) modal.style.display = "block";
 }
+
 // --- Close chat modal ---
 function closeChatModal() {
   const modal = document.getElementById("chatModal");
@@ -1485,8 +1426,6 @@ function sendFileMessage(file, caption) {
   
   reader.readAsDataURL(file);
 }
-
-function appendMessage
 
 // ✅ Append file message to chat
 function appendFileMessage(sender, fileName, fileData, fileType, caption, type) {
