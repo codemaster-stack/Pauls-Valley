@@ -523,7 +523,24 @@ const socket = io("https://valley.pvbonline.online", {
 });
 
 // Unique visitor ID for this session
-const visitorId = "visitor_" + Date.now();
+// const visitorId = "visitor_" + Date.now();
+// ✅ Get or create persistent visitor ID using localStorage
+function getOrCreateVisitorId() {
+  let visitorId = localStorage.getItem('visitorId');
+  
+  if (!visitorId) {
+    // Create new ID if doesn't exist
+    visitorId = "visitor_" + Date.now() + "_" + Math.random().toString(36).substr(2, 9);
+    localStorage.setItem('visitorId', visitorId);
+    console.log("🆕 Created new visitor ID:", visitorId);
+  } else {
+    console.log("♻️ Using existing visitor ID:", visitorId);
+  }
+  
+  return visitorId;
+}
+
+const visitorId = getOrCreateVisitorId();
 
 socket.on("connect", () => {
   socket.emit("joinVisitor", visitorId);
