@@ -1089,43 +1089,6 @@ adminsTableBody.innerHTML = '<tr><td colspan="7">Error loading admins</td></tr>'
 
 
 // Inline fund admin wallet
-// window.fundAdminWalletInline = async function(adminId, username) {
-//   const amount = prompt(`Enter amount to fund ${username}'s wallet:`);
-  
-//   if (!amount || isNaN(amount) || parseFloat(amount) <= 0) {
-//     alert("Invalid amount");
-//     return;
-//   }
-
-//   const token = localStorage.getItem("adminToken");
-
-//   try {
-//     const res = await fetch(`${BACKEND_URL}/api/admin/auth/fund-wallet`, {
-//       method: "POST",
-//       headers: {
-//         "Content-Type": "application/json",
-//         Authorization: `Bearer ${token}`
-//       },
-//       body: JSON.stringify({
-//         adminId: adminId,
-//         amount: parseFloat(amount)
-//       })
-//     });
-
-//     const data = await res.json();
-    
-//     if (!res.ok) {
-//       alert(data.message || "Failed to fund wallet");
-//     } else {
-//       alert(`Successfully funded ${username}'s wallet with $${amount}`);
-//       loadAdmins(); // Reload the admin list to show updated wallet
-//     }
-//   } catch (error) {
-//     console.error("Fund wallet error:", error);
-//     alert("An error occurred. Check console.");
-//   }
-// };
-// Inline fund admin wallet
 window.fundAdminWalletInline = async function(adminId, username) {
   const amount = prompt(`Enter amount to fund ${username}'s wallet:`);
   
@@ -1137,9 +1100,7 @@ window.fundAdminWalletInline = async function(adminId, username) {
   const token = localStorage.getItem("adminToken");
 
   try {
-    console.log("💰 Funding admin wallet:", { adminId, username, amount }); // Debug log
-    
-    const res = await fetch("https://valley.pvbonline.online/api/admin/auth/fund-wallet", {
+    const res = await fetch(`${BACKEND_URL}/api/admin/auth/fund-wallet`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -1152,22 +1113,18 @@ window.fundAdminWalletInline = async function(adminId, username) {
     });
 
     const data = await res.json();
-    console.log("📥 Response:", data); // Debug log
     
     if (!res.ok) {
       alert(data.message || "Failed to fund wallet");
     } else {
-      alert(`✅ Successfully funded ${username}'s wallet with $${amount}`);
-      if (typeof loadAdmins === 'function') {
-        loadAdmins(); // Reload the admin list to show updated wallet
-      }
+      alert(`Successfully funded ${username}'s wallet with $${amount}`);
+      loadAdmins(); // Reload the admin list to show updated wallet
     }
   } catch (error) {
-    console.error("❌ Fund wallet error:", error);
-    alert("An error occurred: " + error.message);
+    console.error("Fund wallet error:", error);
+    alert("An error occurred. Check console.");
   }
 };
-
 
 // Load deleted users (recycle bin)
 window.loadRecycleBin = async function() {

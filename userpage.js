@@ -1239,6 +1239,46 @@ socket.on("adminFileMessage", (data) => {
   appendFileMessage("Support", data.fileName, data.fileData, data.fileType, data.caption, "admin");
 });
 
+socket.on("loadPreviousMessages", (messages) => {
+  console.log("📚 Loading previous messages:", messages.length);
+  
+  if (messages.length === 0) return;
+  
+  const chatBox = document.getElementById("chatMessages");
+  if (!chatBox) return;
+  
+  // Add a separator to show old messages
+  const separator = document.createElement("div");
+  separator.style.textAlign = "center";
+  separator.style.padding = "10px";
+  separator.style.color = "#999";
+  separator.style.fontSize = "12px";
+  separator.innerHTML = `───── Previous Messages (${messages.length}) ─────`;
+  chatBox.appendChild(separator);
+  
+  // Load all previous messages
+  messages.forEach(msg => {
+    if (msg.isFile) {
+      appendFileMessage(
+        msg.sender === "admin" ? "Support" : "You",
+        msg.fileName,
+        msg.fileData,
+        msg.fileType,
+        msg.text,
+        msg.sender
+      );
+    } else {
+      appendMessage(
+        msg.sender === "admin" ? "Support" : "You",
+        msg.text,
+        msg.sender
+      );
+    }
+  });
+  
+  console.log("✅ Previous messages loaded");
+});
+
 // ✨ Listen for admin typing notification
 socket.on("adminTyping", (data) => {
   showAdminTypingIndicator(data.typing);

@@ -694,6 +694,35 @@ socket.emit("joinAdmin", "admin_" + Date.now());
 socket.emit("requestChatHistory");
 
 // Receive chat history from server
+// socket.on("chatHistory", (data) => {
+//   console.log("📚 Received chat history from server:", data);
+  
+//   // Store all conversation history
+//   if (data && typeof data === 'object') {
+//     Object.keys(data).forEach(visitorId => {
+//       if (!chatHistory[visitorId]) {
+//         chatHistory[visitorId] = [];
+//       }
+      
+//       // Merge server history with local history
+//       data[visitorId].forEach(msg => {
+//         chatHistory[visitorId].push({
+//           sender: msg.sender || msg.from || "User",
+//           text: msg.text || msg.message,
+//           html: `<strong>${msg.sender || msg.from || "User"}:</strong> ${msg.text || msg.message}`,
+//           timestamp: msg.timestamp || Date.now()
+//         });
+//       });
+//     });
+//      saveAllChatHistory();
+    
+//     // If a user is selected, reload their chat
+//     if (selectedVisitorId && chatHistory[selectedVisitorId]) {
+//       loadChatHistory(selectedVisitorId);
+//     }
+//   }
+// });
+// Receive chat history from server
 socket.on("chatHistory", (data) => {
   console.log("📚 Received chat history from server:", data);
   
@@ -706,10 +735,31 @@ socket.on("chatHistory", (data) => {
       
       // Merge server history with local history
       data[visitorId].forEach(msg => {
+        // ✅ Handle both text and file messages
+        let htmlContent = '';
+        
+        if (msg.isFile) {
+          // File message
+          let filePreview = '';
+          if (msg.fileType && msg.fileType.startsWith("image/")) {
+            filePreview = `<br><img src="${msg.fileData}" alt="${msg.fileName}" style="max-width: 150px; border-radius: 5px; margin-top: 5px; cursor: pointer;" onclick="window.open('${msg.fileData}', '_blank')">`;
+          } else if (msg.fileName && msg.fileData) {
+            filePreview = `<br><a href="${msg.fileData}" download="${msg.fileName}" style="display: inline-block; padding: 8px; background: #e3f2fd; border-radius: 5px; margin-top: 5px; text-decoration: none;"><i class="fas fa-file-alt"></i> ${msg.fileName}</a>`;
+          }
+          htmlContent = `<strong>${msg.sender || msg.from || "User"}:</strong> ${msg.text || msg.message}${filePreview}`;
+        } else {
+          // Text message
+          htmlContent = `<strong>${msg.sender || msg.from || "User"}:</strong> ${msg.text || msg.message}`;
+        }
+        
         chatHistory[visitorId].push({
           sender: msg.sender || msg.from || "User",
           text: msg.text || msg.message,
-          html: `<strong>${msg.sender || msg.from || "User"}:</strong> ${msg.text || msg.message}`,
+          html: htmlContent,
+          isFile: msg.isFile || false,
+          fileName: msg.fileName,
+          fileType: msg.fileType,
+          fileData: msg.fileData,
           timestamp: msg.timestamp || Date.now()
         });
       });
@@ -723,6 +773,8 @@ socket.on("chatHistory", (data) => {
     }
   }
 });
+    
+    
 
 // Fetch active visitors
 function loadChatUsers() {
