@@ -404,19 +404,28 @@ if (sendEmailForm) {
     submitBtn.innerHTML = '<span class="spinner"></span> Sending...';
     submitBtn.disabled = true;
     
+    // const formData = new FormData(e.target);
+    // const data = Object.fromEntries(formData);
     const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
     
     try {
-      const response = await fetch(`${BACKEND_URL}/api/admin/auth/send-email`, {
-        method: 'POST',
+      // const response = await fetch(`${BACKEND_URL}/api/admin/auth/send-email`, {
+      //   method: 'POST',
+      //   headers: { 
+      //     'Content-Type': 'application/json',
+      //     'Authorization': `Bearer ${localStorage.getItem("adminToken")}` 
+      //   },
+      //   body: JSON.stringify(data)
+      // });
+       const response = await fetch(`${BACKEND_URL}/api/admin/auth/send-email`, {
+       method: 'POST',
         headers: { 
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem("adminToken")}` 
-        },
-        body: JSON.stringify(data)
-      });
-      
+        'Authorization': `Bearer ${localStorage.getItem("adminToken")}` 
+      },
+       body: formData // Send FormData directly (no JSON.stringify)
+       });
+
+
       const result = await response.json();
       if (response.ok) {
         showMessage('Email sent successfully!');
