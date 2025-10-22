@@ -861,6 +861,24 @@ socket.on("loadPreviousMessages", (messages) => {
   console.log("✅ Previous messages loaded for visitor");
 });
 
+socket.on("chatEnded", (data) => {
+  console.log("🔚 Chat ended by admin");
+  
+  const chatBox = document.getElementById("chatMessages");
+  if (chatBox) {
+    chatBox.innerHTML = `
+      <div style="text-align: center; padding: 30px; background: #fff3cd; border-radius: 10px; margin: 20px;">
+        <h3 style="color: #856404;">Chat Session Ended</h3>
+        <p style="color: #856404;">This conversation has been closed by support.</p>
+        <p style="font-size: 14px; color: #666;">You can start a new conversation by sending a message.</p>
+      </div>
+    `;
+  }
+  
+  // Clear visitor ID to start fresh next time
+  localStorage.removeItem('visitorId');
+  console.log("🗑️ Visitor ID cleared - new chat will start fresh");
+});
 
   //  hamburger menu code
 const hamburger = document.querySelector('.open-mobilemenu');

@@ -835,27 +835,64 @@ function loadChatUsers() {
   }
 }
 
-function selectUser(visitorId, email) {
-  // Save current chat before switching (if there was a previous user)
+// function selectUser(visitorId, email) {
+//   // Save current chat before switching (if there was a previous user)
+//   if (selectedVisitorId) {
+//     saveChatHistory(selectedVisitorId);
+//   }
+  
+//   selectedVisitorId = visitorId;
+  
+//   // Clear chat window
+//   const chatWindow = document.getElementById("chatWindow");
+//   chatWindow.innerHTML = "";
+  
+//   // Add header
+//   const headerDiv = document.createElement("div");
+//   headerDiv.style.padding = "10px";
+//   headerDiv.style.backgroundColor = "#f5f5f5";
+//   headerDiv.style.borderBottom = "2px solid #ddd";
+//   headerDiv.style.marginBottom = "10px";
+//   headerDiv.innerHTML = `<strong>Chatting with:</strong> ${email}`;
+//   chatWindow.appendChild(headerDiv);
+  function selectUser(visitorId, email) {
   if (selectedVisitorId) {
     saveChatHistory(selectedVisitorId);
   }
   
   selectedVisitorId = visitorId;
   
-  // Clear chat window
   const chatWindow = document.getElementById("chatWindow");
   chatWindow.innerHTML = "";
   
-  // Add header
+  // ✅ UPDATED: Header with End Chat button
   const headerDiv = document.createElement("div");
   headerDiv.style.padding = "10px";
   headerDiv.style.backgroundColor = "#f5f5f5";
   headerDiv.style.borderBottom = "2px solid #ddd";
   headerDiv.style.marginBottom = "10px";
-  headerDiv.innerHTML = `<strong>Chatting with:</strong> ${email}`;
+  headerDiv.style.display = "flex";
+  headerDiv.style.justifyContent = "space-between";
+  headerDiv.style.alignItems = "center";
+  headerDiv.innerHTML = `
+    <strong>Chatting with: ${email}</strong>
+    <button onclick="endChatSession('${visitorId}')" style="background: #dc3545; color: white; border: none; padding: 5px 15px; border-radius: 5px; cursor: pointer; font-size: 12px;">
+      🔚 End Chat
+    </button>
+  `;
   chatWindow.appendChild(headerDiv);
   
+  // ✅ Mark as read
+  socket.emit("markAsRead", { visitorId: visitorId });
+  
+  // ✅ Remove unread badge
+  const userLi = document.getElementById(`visitor-${visitorId}`);
+  if (userLi) {
+    const badge = userLi.querySelector('.unread-badge');
+    if (badge) badge.remove();
+    userLi.style.backgroundColor = "#e3f2fd";
+    userLi.style.fontWeight = "normal";
+  }
   // Initialize chat history for new visitor
   if (!chatHistory[visitorId]) {
     chatHistory[visitorId] = [];
@@ -868,6 +905,54 @@ function selectUser(visitorId, email) {
   
   console.log("Selected user:", visitorId, email);
 }
+
+function endChatSession(visitorId) {
+  if (!confirm(`End chat with ${visitorId}?\n\nThis will delete all chat history for both you and the user.`)) {
+    return;
+  }
+  
+  socket.emit("endChat", { visitorId: visitorId });
+}
+
+socket.on("chatEndedConfirm", (data) => {
+  console.log("✅ Chat ended for:", data.visitorId);
+  
+  delete chatHistory[data.visitorId];
+  saveAllChatHistory();
+  
+  const userLi = document.getElementById(`visitor-${data.visitorId}`);
+  if (userLi) userLi.remove();
+  
+  if (selectedVisitorId === data.visitorId) {
+    const chatWindow = document.getElementById("chatWindow");
+    chatWindow.innerHTML = `
+      <div style="text-align: center; padding: 50px; color: #999;">
+        <p>Chat session ended</p>
+        <p style="font-size: 14px;">Select another user to continue</p>
+      </div>
+    `;
+    selectedVisitorId = null;
+  }
+  
+  alert("✅ Chat session ended successfully");
+});
+
+socket.on("newUnreadMessage", (data) => {
+  const userLi = document.getElementById(`visitor-${data.visitorId}`);
+  if (!userLi || selectedVisitorId === data.visitorId) return;
+  
+  let badge = userLi.querySelector('.unread-badge');
+  if (!badge) {
+    badge = document.createElement('span');
+    badge.className = 'unread-badge';
+    badge.style.cssText = 'background: #dc3545; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; margin-left: 10px; font-weight: bold;';
+    userLi.appendChild(badge);
+  }
+  badge.textContent = data.messageCount;
+  userLi.style.backgroundColor = "#fff3cd";
+  userLi.style.fontWeight = "bold";
+});
+
 
 // Save current chat to history
 function saveChatHistory(visitorId) {
