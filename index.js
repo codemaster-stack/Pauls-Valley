@@ -85,7 +85,7 @@ if (loginForm) {
       if (res.ok) {
         alert("Login successful!");
         localStorage.setItem("token", result.token);
-        window.location.href = "/userpage.";
+        window.location.href = "/userpage.html";
       } else {
         // Check if account is deactivated
         if (result.type === 'ACCOUNT_DEACTIVATED') {
