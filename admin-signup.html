@@ -334,7 +334,7 @@ loginForm?.addEventListener("submit", async (e) => {
   if (data.role === "superadmin") {
     window.location.href = "superadmin-dashboard.html";
   } else {
-    window.location.href = "admin.html";
+    window.location.href = "admin";
   }
 }
   } catch (error) {
@@ -433,7 +433,7 @@ window.addEventListener("DOMContentLoaded", () => {
 // -------------------------------
 // Protect Admin Dashboard
 // -------------------------------
-if (window.location.pathname.includes("admin.html")) {
+if (window.location.pathname.includes("admin")) {
   const token = localStorage.getItem("adminToken");
   if (!token) {
     alert("You must login first!");

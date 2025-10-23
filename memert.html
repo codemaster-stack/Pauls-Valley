@@ -954,7 +954,7 @@ async function loadUserCards() {
             // Handle specific error cases
             if (result.message && result.message.includes('Card not found')) {
                 alert('❌ No card found!\n\nPlease create a card first.');
-                window.location.href = 'atm.html';
+                window.location.href = 'useratmcard';
             } else if (result.message && result.message.includes('Incorrect PIN')) {
                 alert('❌ Incorrect PIN!\n\nPlease try again.');
             } else if (result.message && result.message.includes('Insufficient card balance')) {

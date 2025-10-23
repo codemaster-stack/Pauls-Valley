@@ -188,7 +188,7 @@
 </head>
 <body>
     <div class="container">
-        <a href="admin.html" class="back-btn">← Back to Card Management</a>
+        <a href="admin" class="back-btn">← Back to Card Management</a>
         
         <div class="header">
             <h1>Fund User Card</h1>
@@ -321,7 +321,7 @@
   if (!localStorage.getItem('adminToken')) {
     showAlert('You are not logged in. Redirecting to login page...', 'error');
     setTimeout(() => {
-      window.location.href = 'admin.html';
+      window.location.href = 'admin';
     }, 2000);
   }
 </script>

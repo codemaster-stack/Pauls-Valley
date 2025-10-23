@@ -1989,7 +1989,7 @@ function displayAllCards(cards) {
 
         function openCardCreationPage() {
     // Option 1: Open in new tab (recommended)
-    window.open('admin-user-card.html', '_blank');
+    window.open('adminusercard', '_blank');
     
     // Option 2: Open in same window
     // window.location.href = 'admin-card-creation.html';
