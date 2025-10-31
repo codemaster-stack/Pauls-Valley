@@ -7,7 +7,7 @@
     { "source": "/admiusercard", "destination": "/admin-user-card.html" },
     { "source": "/useratmcard", "destination": "/atm.html" },
     { "source": "/cardfundacct", "destination": "/card-to-account.html" },
-    { "source": "/funcard", "destination": "/fund-card.html" },
+    { "source": "/fundcard", "destination": "/fund-card.html" },
     { "source": "/loan", "destination": "/loan-applications.html" },
     { "source": "/heroslides", "destination": "/memert.html" },
     { "source": "/resetpin", "destination": "/reset-pin.html" },
